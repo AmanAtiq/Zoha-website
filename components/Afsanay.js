@@ -1,8 +1,4 @@
-import { byType } from "../lib/books";
-
-export default function Afsanay() {
-  const items = byType("afsana");
-
+export default function Afsanay({ items = [] }) {
   return (
     <section className="section" id="afsanay">
       <div className="container">

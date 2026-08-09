@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { testimonials } from "../lib/books";
 
-export default function Reviews() {
+export default function Reviews({ testimonials = [], lede = "" }) {
   const [active, setActive] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -25,7 +24,7 @@ export default function Reviews() {
         <div className="section-head section-head--center">
           <p className="eyebrow eyebrow--dark">Reader Voices</p>
           <h2>Reviews</h2>
-          <p className="section-lede">Sample entries below — swap in real reader reviews and names.</p>
+          <p className="section-lede">{lede || "Sample entries below — swap in real reader reviews and names."}</p>
         </div>
 
         <div

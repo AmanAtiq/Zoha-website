@@ -1,7 +1,5 @@
 import "./globals.css";
 import { cormorant, lora, notoNastaliq } from "./fonts";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 
 export const metadata = {
   title: "Zoha Asif — Author",
@@ -12,11 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${cormorant.variable} ${lora.variable} ${notoNastaliq.variable}`}>
-      <body>
-        <Header />
-        {children}
-        <Footer />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

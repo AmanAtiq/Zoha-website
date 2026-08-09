@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { EDITION_DETAILS, formatPrice } from "../lib/prebooking";
+import { formatPrice } from "../lib/prebooking";
 
 const BASKET_STORAGE_KEY = "zoha-prebooking-basket";
 const BASKET_EVENT = "zoha-prebooking-basket-change";
 
-export default function PrebookingDetail({ book }) {
+export default function PrebookingDetail({ book, edition }) {
   const [added, setAdded] = useState(false);
-  const edition = EDITION_DETAILS[book.slug];
+  const comingSoon = edition?.isComingSoon;
+  const priceLabel = comingSoon ? "Coming soon" : formatPrice(edition.price);
 
   const addToBasket = () => {
+    if (comingSoon) return;
     const savedBasket = window.localStorage.getItem(BASKET_STORAGE_KEY);
     const currentBasket = savedBasket ? JSON.parse(savedBasket) : [];
     const existing = currentBasket.find((item) => item.slug === book.slug);
@@ -40,12 +42,12 @@ export default function PrebookingDetail({ book }) {
               <p className="prebooking-detail-pitch">{edition.pitch}</p>
               <div className="prebooking-detail-buybox">
                 <div>
-                  <span className="prebooking-buybox-label">Prebooking price</span>
-                  <strong>{formatPrice(edition.price)}</strong>
+                  <span className="prebooking-buybox-label">{comingSoon ? "Availability" : "Prebooking price"}</span>
+                  <strong>{priceLabel}</strong>
                 </div>
                 <span className="prebooking-buybox-note">{edition.note}</span>
-                <button type="button" className="btn btn-primary" onClick={addToBasket}>
-                  {added ? "Added to cart" : "Add to cart"}
+                <button type="button" className="btn btn-primary" onClick={addToBasket} disabled={comingSoon}>
+                  {comingSoon ? "Coming soon" : added ? "Added to cart" : "Add to cart"}
                 </button>
                 {added && <a className="prebooking-view-cart" href="/cart">Review your cart →</a>}
               </div>

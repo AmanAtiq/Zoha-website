@@ -1,8 +1,4 @@
-import { byType } from "../lib/books";
-
-export default function EpisodicNovels() {
-  const items = byType("episodic");
-
+export default function EpisodicNovels({ items = [] }) {
   return (
     <section className="section" id="episodic">
       <div className="container">
@@ -23,6 +19,9 @@ export default function EpisodicNovels() {
             <div className="episodic-body">
               <h3>{book.title}</h3>
               <p className="episodic-sub" lang="ur" dir="rtl">{book.titleUrdu}</p>
+              <span className={`book-status ${book.moreEpisodesComing ? "book-status--ongoing" : "book-status--complete"}`}>
+                {book.moreEpisodesComing ? "Ongoing" : "Complete"}
+              </span>
               <p>{book.tagline}</p>
               <a href={`/novels/${book.slug}`} className="btn btn-primary">
                 {book.ctaLabel}

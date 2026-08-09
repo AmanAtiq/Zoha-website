@@ -157,6 +157,7 @@ export default function StandaloneDetail({ book }) {
             rating={book.rating}
             reviews={book.reviews || []}
             formPrompt="Which part stayed with you?"
+            bookSlug={book.slug}
           />
         </div>
       </section>
@@ -169,7 +170,7 @@ export default function StandaloneDetail({ book }) {
         </div>
       )}
 
-      <MoreFromAuthor book={book} />
+      <MoreFromAuthor more={book.more || []} />
     </main>
   );
 }

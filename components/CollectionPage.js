@@ -1,5 +1,3 @@
-import { books } from "../lib/books";
-
 const COLLECTIONS = {
   episodic: {
     eyebrow: "Read as it unfolds",
@@ -24,14 +22,14 @@ const COLLECTIONS = {
   },
 };
 
-export default function CollectionPage({ type }) {
-  const collection = COLLECTIONS[type];
-  const items = books.filter((book) => book.type === type);
+export default function CollectionPage({ type, items = [] }) {
+  const collection = COLLECTIONS[type] || {};
+  const heroImage = items[0]?.hero;
 
   return (
     <main className={`collection-page collection-page--${type}`}>
       <section className="collection-hero">
-        <img className="collection-hero-image" src={items[0].hero} alt="" />
+        {heroImage && <img className="collection-hero-image" src={heroImage} alt="" />}
         <div className="collection-hero-overlay" />
         <div className="container collection-hero-inner">
           <div className="collection-hero-copy">
@@ -72,6 +70,11 @@ export default function CollectionPage({ type }) {
                   <div>
                     <h3>{book.title}</h3>
                     <p className="collection-card-urdu" lang="ur" dir="rtl">{book.titleUrdu}</p>
+                    {type === "episodic" && (
+                      <span className={`book-status ${book.moreEpisodesComing ? "book-status--ongoing" : "book-status--complete"}`}>
+                        {book.moreEpisodesComing ? "Ongoing" : "Complete"}
+                      </span>
+                    )}
                     <p>{book.tagline}</p>
                     <a className="link-arrow" href={`/novels/${book.slug}`}>{collection.linkLabel} →</a>
                   </div>

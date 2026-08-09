@@ -1,7 +1,5 @@
-import { moreFrom } from "../lib/books";
-
-export default function MoreFromAuthor({ book }) {
-  const items = moreFrom(book);
+export default function MoreFromAuthor({ more = [] }) {
+  const items = more;
   if (items.length === 0) return null;
 
   return (

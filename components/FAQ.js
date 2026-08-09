@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { faqs } from "../lib/books";
-
-export default function FAQ() {
+export default function FAQ({ faqs = [] }) {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (

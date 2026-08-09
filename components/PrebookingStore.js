@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { books } from "../lib/books";
-import { addItemToBasket, EDITION_DETAILS, formatPrice } from "../lib/prebooking";
+import { formatPrice } from "../lib/prebooking";
 
 const BASKET_STORAGE_KEY = "zoha-prebooking-basket";
 const BASKET_EVENT = "zoha-prebooking-basket-change";
 
-export default function PrebookingStore() {
+export default function PrebookingStore({ items = [] }) {
   const [basket, setBasket] = useState([]);
   const [isBasketReady, setIsBasketReady] = useState(false);
 
@@ -31,16 +30,34 @@ export default function PrebookingStore() {
 
   const basketCount = basket.reduce((total, item) => total + item.quantity, 0);
 
-  const addToBasket = (book) => {
+  const addToBasket = (book, edition) => {
     setBasket((current) => {
-      const nextBasket = addItemToBasket(current, book);
+      const existing = current.find((item) => item.slug === book.slug);
+      const nextBasket = existing
+        ? current.map((item) =>
+            item.slug === book.slug ? { ...item, quantity: item.quantity + 1 } : item
+          )
+        : [
+            ...current,
+            {
+              slug: book.slug,
+              title: book.title,
+              price: edition.price,
+              quantity: 1,
+            },
+          ];
       window.localStorage.setItem(BASKET_STORAGE_KEY, JSON.stringify(nextBasket));
       window.dispatchEvent(new Event(BASKET_EVENT));
       return nextBasket;
     });
   };
 
-  const featuredBook = useMemo(() => books.find((book) => book.slug === "tu-sawera-mera"), []);
+  const featuredBook = useMemo(
+    () => (items.find((item) => item.book.slug === "tu-sawera-mera") || items[0])?.book,
+    [items]
+  );
+
+  if (!featuredBook) return <main className="prebooking-page" />;
 
   return (
     <main className="prebooking-page">
@@ -83,30 +100,36 @@ export default function PrebookingStore() {
           </div>
 
           <div className="prebooking-grid">
-            {books.map((book) => {
-              const edition = EDITION_DETAILS[book.slug];
-              return (
-                <article className="prebooking-card" key={book.slug}>
-                  <a className="prebooking-cover" href={`/prebooking/${book.slug}`}>
-                    <img src={book.cover} alt={`${book.title} cover`} />
-                    <span className="prebooking-card-badge">{book.typeLabel}</span>
-                  </a>
-                  <div className="prebooking-card-body">
-                    <div className="prebooking-card-title-row">
-                      <div>
-                        <h3><a href={`/prebooking/${book.slug}`}>{book.title}</a></h3>
-                        <p className="prebooking-urdu" lang="ur" dir="rtl">{book.titleUrdu}</p>
-                      </div>
-                      <strong className="prebooking-price">{formatPrice(edition.price)}</strong>
+            {items.map(({ book, edition }) => (
+              <article className="prebooking-card" key={book.slug}>
+                <a className="prebooking-cover" href={`/prebooking/${book.slug}`}>
+                  <img src={book.cover} alt={`${book.title} cover`} />
+                  <span className="prebooking-card-badge">{book.typeLabel}</span>
+                </a>
+                <div className="prebooking-card-body">
+                  <div className="prebooking-card-title-row">
+                    <div>
+                      <h3><a href={`/prebooking/${book.slug}`}>{book.title}</a></h3>
+                      <p className="prebooking-urdu" lang="ur" dir="rtl">{book.titleUrdu}</p>
                     </div>
-                    <p className="prebooking-card-note">{edition.note}</p>
-                    <button type="button" className="btn btn-outline-dark prebooking-add" onClick={() => addToBasket(book)}>
-                      Add to cart
-                    </button>
+                    {edition.isComingSoon ? (
+                      <strong className="prebooking-coming-soon">Coming soon</strong>
+                    ) : (
+                      <strong className="prebooking-price">{formatPrice(edition.price)}</strong>
+                    )}
                   </div>
-                </article>
-              );
-            })}
+                  <p className="prebooking-card-note">{edition.note}</p>
+                  <button
+                    type="button"
+                    className="btn btn-outline-dark prebooking-add"
+                    disabled={edition.isComingSoon}
+                    onClick={() => addToBasket(book, edition)}
+                  >
+                    {edition.isComingSoon ? "Not yet available" : "Add to cart"}
+                  </button>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>

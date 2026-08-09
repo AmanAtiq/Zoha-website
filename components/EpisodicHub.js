@@ -45,8 +45,8 @@ export default function EpisodicHub({ book }) {
             )}
 
             <div className="chip-row" style={{ marginBottom: 16 }}>
-              <span className="chip">
-                Ongoing · {released} episode{released === 1 ? "" : "s"} released
+              <span className={`chip ${book.moreEpisodesComing ? "chip--outline" : ""}`}>
+                {book.moreEpisodesComing ? `Ongoing · ${released} episode${released === 1 ? "" : "s"} released` : "Complete"}
               </span>
               <span className="chip chip--outline">Urdu</span>
             </div>
@@ -176,6 +176,7 @@ export default function EpisodicHub({ book }) {
             rating={book.rating}
             reviews={book.reviews || []}
             formPrompt="Which part of this novel stayed with you?"
+            bookSlug={book.slug}
           />
         </div>
       </section>
@@ -188,7 +189,7 @@ export default function EpisodicHub({ book }) {
         </div>
       )}
 
-      <MoreFromAuthor book={book} />
+      <MoreFromAuthor more={book.more || []} />
     </main>
   );
 }

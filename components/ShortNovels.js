@@ -1,8 +1,4 @@
-import { byType } from "../lib/books";
-
-export default function ShortNovels() {
-  const items = byType("short-novel");
-
+export default function ShortNovels({ items = [] }) {
   return (
     <section className="section section--tint" id="short-novels">
       <div className="container">

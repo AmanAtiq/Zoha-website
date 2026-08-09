@@ -1,32 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { heroSlides } from "../lib/books";
 
-export default function Hero() {
+export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
   const [active, setActive] = useState(0);
   const timerRef = useRef(null);
 
-  const go = (i) => setActive((i + heroSlides.length) % heroSlides.length);
+  const go = (i) => setActive((i + slides.length) % slides.length);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) return;
     timerRef.current = setInterval(() => {
-      setActive((v) => (v + 1) % heroSlides.length);
-    }, 6500);
+      setActive((v) => (v + 1) % slides.length);
+    }, autoplayMs);
     return () => clearInterval(timerRef.current);
-  }, []);
+  }, [autoplayMs, slides.length]);
 
   const restart = (fn) => {
     clearInterval(timerRef.current);
     fn();
   };
 
+  if (!slides.length) return null;
+
   return (
     <section className="hero" id="hero" aria-label="Featured works">
       <div className="hero-slider">
-        {heroSlides.map((book, i) => (
+        {slides.map((book, i) => (
           <article
             key={book.slug}
             className={`slide${i === active ? " is-active" : ""}`}
@@ -38,6 +39,7 @@ export default function Hero() {
             />
             <div className="slide-overlay" />
             <div className="container slide-content">
+              {lede && <p className="slide-lede">{lede}</p>}
               <p className="slide-type">{book.typeLabel}</p>
               <h1 className="slide-title">{book.title}</h1>
               <div className="slide-actions">
@@ -68,7 +70,7 @@ export default function Hero() {
         </button>
 
         <div className="slider-dots" role="tablist" aria-label="Slide selector">
-          {heroSlides.map((book, i) => (
+          {slides.map((book, i) => (
             <button
               key={book.slug}
               role="tab"

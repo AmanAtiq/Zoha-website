@@ -425,7 +425,10 @@ h1, h2, h3, h4 {
 .episodic-cover img { width: 100%; height: 100%; object-fit: cover; }
 .episodic-body { padding: 20px 40px 20px 0; }
 .episodic-body h3 { font-size: 2rem; margin-bottom: 4px; }
-.episodic-sub { font-family: var(--font-urdu); color: var(--rose); font-size: 1.15rem; margin-bottom: 14px; }
+.episodic-sub { font-family: var(--font-urdu); color: var(--rose); font-size: 1.15rem; margin-bottom: 10px; }
+.book-status { display: inline-block; margin-bottom: 14px; padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.book-status--ongoing { background: var(--rose-light); color: var(--maroon); }
+.book-status--complete { background: #e9f6ec; color: #24653a; }
 .episodic-body p { color: var(--ink-soft); margin-bottom: 22px; max-width: 46ch; }
 
 @media (max-width: 760px) {
@@ -675,8 +678,8 @@ h1, h2, h3, h4 {
 .prebooking-hero-feature img { position: relative; z-index: 1; width: 100%; border-radius: var(--radius); box-shadow: var(--shadow-lift); transform: rotate(-3deg); }
 .prebooking-hero-note {
   position: absolute;
-  right: -48px;
-  bottom: 28px;
+  right: -108px;
+  bottom: -25px;
   z-index: 2;
   display: flex;
   flex-direction: column;

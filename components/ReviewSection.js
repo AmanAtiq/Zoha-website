@@ -4,23 +4,45 @@ import { useState } from "react";
 import StarRating from "./StarRating";
 import RatingBars from "./RatingBars";
 
-export default function ReviewSection({ rating, reviews: initialReviews, formPrompt }) {
+export default function ReviewSection({ rating, reviews: initialReviews, formPrompt, bookSlug, episodeSlug }) {
   const [reviews, setReviews] = useState(initialReviews || []);
   const [sel, setSel] = useState(0);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [notice, setNotice] = useState("");
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed) return;
-    setReviews((prev) => [
-      { name: name.trim() || "Reader", when: "Just now", rating: sel || 5, text: trimmed },
-      ...prev,
-    ]);
-    setName("");
-    setText("");
-    setSel(0);
+    if (!trimmed || posting) return;
+    setPosting(true);
+    setNotice("");
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookSlug,
+          episodeSlug,
+          name: name.trim() || "Reader",
+          rating: sel || 5,
+          text: trimmed,
+        }),
+      });
+      if (res.ok) {
+        setNotice("Thanks! Your review is now live on this page.");
+        setName("");
+        setText("");
+        setSel(0);
+      } else {
+        setNotice("Something went wrong — please try again.");
+      }
+    } catch {
+      setNotice("Something went wrong — please try again.");
+    } finally {
+      setPosting(false);
+    }
   };
 
   return (
@@ -90,8 +112,8 @@ export default function ReviewSection({ rating, reviews: initialReviews, formPro
           onChange={(e) => setText(e.target.value)}
         />
         <div className="review-form-footer">
-          <span className="review-form-note">Reviews appear once approved</span>
-          <button type="submit" className="btn btn-primary">Post review</button>
+          <span className="review-form-note">{notice || "Your review appears on the site right away"}</span>
+          <button type="submit" className="btn btn-primary" disabled={posting}>{posting ? "Posting…" : "Post review"}</button>
         </div>
       </form>
     </div>

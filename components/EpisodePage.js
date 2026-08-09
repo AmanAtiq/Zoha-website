@@ -125,6 +125,8 @@ export default function EpisodePage({ book, episode, index }) {
             rating={episode.rating}
             reviews={episode.reviews || []}
             formPrompt="What did this episode leave you with?"
+            bookSlug={book.slug}
+            episodeSlug={episode.slug}
           />
         </div>
       </section>
