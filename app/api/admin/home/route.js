@@ -19,6 +19,23 @@ const DEFAULT_AUTHOR_INTRO = {
 
 export const dynamic = "force-dynamic";
 
+function normalizeAdminQuotes(quotes, quoteText, quoteCite, authorIntro) {
+  if (Array.isArray(quotes) && quotes.length) {
+    return quotes.map((q) => ({
+      ur: q.ur || "",
+      en: q.en || q.text || "",
+      cite: q.cite || "— Zoha Asif",
+    }));
+  }
+  if (Array.isArray(authorIntro?._quotes) && authorIntro._quotes.length) {
+    return normalizeAdminQuotes(authorIntro._quotes);
+  }
+  if (quoteText) {
+    return [{ ur: "", en: quoteText, cite: quoteCite || "— Zoha Asif" }];
+  }
+  return [{ ur: "", en: "", cite: "— Zoha Asif" }];
+}
+
 export async function GET() {
   const token = await requireAdmin();
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,22 +50,32 @@ export async function GET() {
   // Show what's actually live on the site even before the DB is seeded: the
   // panel is never blank. DB rows take precedence once they exist.
   const settings = settingsRes.data
-    ? {
-        heroSlugs: settingsRes.data.hero_slugs || [],
-        episodicSlugs: settingsRes.data.episodic_slugs || [],
-        shortNovelSlugs: settingsRes.data.short_novel_slugs || [],
-        afsanaSlugs: settingsRes.data.afsana_slugs || [],
-        heroAutoplayMs: settingsRes.data.hero_autoplay_ms ?? 6500,
-        heroLede: settingsRes.data.hero_lede || "",
-        reviewsLede: settingsRes.data.reviews_lede || "",
-        quoteText: settingsRes.data.quote_text || "",
-        quoteCite: settingsRes.data.quote_cite || "",
-        authorIntro: {
+    ? (() => {
+        const authorIntro = {
           ...DEFAULT_AUTHOR_INTRO,
           ...(settingsRes.data.author_intro || {}),
-        },
-        faqs: settingsRes.data.faqs || [],
-      }
+        };
+        delete authorIntro._quotes;
+        return {
+          heroSlugs: settingsRes.data.hero_slugs || [],
+          episodicSlugs: settingsRes.data.episodic_slugs || [],
+          shortNovelSlugs: settingsRes.data.short_novel_slugs || [],
+          afsanaSlugs: settingsRes.data.afsana_slugs || [],
+          heroAutoplayMs: settingsRes.data.hero_autoplay_ms ?? 6500,
+          heroLede: settingsRes.data.hero_lede || "",
+          reviewsLede: settingsRes.data.reviews_lede || "",
+          quoteText: settingsRes.data.quote_text || "",
+          quoteCite: settingsRes.data.quote_cite || "",
+          quotes: normalizeAdminQuotes(
+            settingsRes.data.quotes,
+            settingsRes.data.quote_text,
+            settingsRes.data.quote_cite,
+            settingsRes.data.author_intro
+          ),
+          authorIntro,
+          faqs: settingsRes.data.faqs || [],
+        };
+      })()
     : getSeedHomeSettingsForAdmin();
 
   const dbTestimonials = (testRes.data || []).map(rowToTestimonial);
@@ -100,6 +127,17 @@ export async function PUT(request) {
     return (slugs || []).slice(0, limit);
   };
 
+  const quotes = Array.isArray(s.quotes)
+    ? s.quotes.map((q) => ({
+        ur: String(q.ur || "").trim(),
+        en: String(q.en || "").trim(),
+        cite: String(q.cite || "").trim() || "— Zoha Asif",
+      }))
+    : [];
+  const first = quotes[0] || {};
+  const authorIntro = { ...(s.authorIntro || {}) };
+  delete authorIntro._quotes;
+
   const { error } = await admin.from("home_settings").upsert(
     {
       id: 1,
@@ -110,14 +148,46 @@ export async function PUT(request) {
       hero_autoplay_ms: Number(s.heroAutoplayMs) || 6500,
       hero_lede: s.heroLede || "",
       reviews_lede: s.reviewsLede || "",
-      quote_text: s.quoteText || "",
-      quote_cite: s.quoteCite || "",
-      author_intro: s.authorIntro || {},
+      quote_text: first.en || first.ur || s.quoteText || "",
+      quote_cite: first.cite || s.quoteCite || "",
+      quotes,
+      author_intro: authorIntro,
       faqs: s.faqs || [],
     },
     { onConflict: "id" }
   );
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    // Older DBs may not have the `quotes` column yet — save the first quote
+    // into legacy fields and stash the full list on author_intro until migrated.
+    if (/quotes/i.test(error.message)) {
+      const fallback = await admin.from("home_settings").upsert(
+        {
+          id: 1,
+          hero_slugs: s.heroSlugs ?? [],
+          episodic_slugs: sectionClamp(s.episodicSlugs, "episodic"),
+          short_novel_slugs: sectionClamp(s.shortNovelSlugs, "short-novel"),
+          afsana_slugs: sectionClamp(s.afsanaSlugs, "afsana"),
+          hero_autoplay_ms: Number(s.heroAutoplayMs) || 6500,
+          hero_lede: s.heroLede || "",
+          reviews_lede: s.reviewsLede || "",
+          quote_text: first.en || first.ur || s.quoteText || "",
+          quote_cite: first.cite || s.quoteCite || "",
+          author_intro: {
+            ...authorIntro,
+            _quotes: quotes,
+          },
+          faqs: s.faqs || [],
+        },
+        { onConflict: "id" }
+      );
+      if (fallback.error) return NextResponse.json({ error: fallback.error.message }, { status: 500 });
+      return NextResponse.json({
+        ok: true,
+        warning: "Run: alter table public.home_settings add column if not exists quotes jsonb default '[]';",
+      });
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

@@ -40,6 +40,7 @@ create table if not exists public.books (
   placeholder_copy boolean default false,
   home_visible boolean default true,
   home_order integer default 0,
+  prebook_only boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -99,6 +100,7 @@ create table if not exists public.home_settings (
   reviews_lede text default '',
   quote_text text default '',
   quote_cite text default '',
+  quotes jsonb default '[]',
   author_intro jsonb default '{}',
   faqs jsonb default '[]',
   updated_at timestamptz default now()
@@ -106,6 +108,14 @@ create table if not exists public.home_settings (
 
 insert into public.home_settings (id) values (1)
   on conflict (id) do nothing;
+
+-- Multi-quote band on the homepage (Urdu + English + cite per slide)
+alter table public.home_settings
+  add column if not exists quotes jsonb default '[]';
+
+-- Books that only appear in the prebooking store (not in reading collections)
+alter table public.books
+  add column if not exists prebook_only boolean default false;
 
 -- ---------- Prebooking ----------
 create table if not exists public.prebooking (

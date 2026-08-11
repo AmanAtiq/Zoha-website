@@ -25,7 +25,7 @@ export default function Footer() {
           <ul>
             <li><a href="/#socials">Socials</a></li>
             <li><a href="/#reviews">Reviews</a></li>
-            <li><a href="mailto:hello@zohaasif.com">hello@zohaasif.com</a></li>
+            <li><a href="mailto:info@zohaasif.com">info@zohaasif.com</a></li>
           </ul>
         </div>
       </div>

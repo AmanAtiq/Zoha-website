@@ -46,8 +46,9 @@ export async function GET() {
     homeOrder: b.home_order,
     episodeCount: epCounts[b.slug] || 0,
     reviewCount: revCounts[b.slug] || 0,
+    prebookOnly: !!b.prebook_only,
     inDb: true,
-  }));
+  })).filter((b) => !b.prebookOnly);
 
   // Empty (or not-yet-seeded) database: show the static catalog so the admin
   // can edit it. Saving any book upserts it into Supabase.
@@ -74,10 +75,16 @@ export async function POST(request) {
   }
   if (!row.slug) row.slug = slugify(row.title);
 
-  const { data, error } = await admin.from("books").insert(row).select().single();
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  let data;
+  let insert = await admin.from("books").insert(row).select().single();
+  if (insert.error && /prebook_only/i.test(insert.error.message)) {
+    const { prebook_only: _drop, ...without } = row;
+    insert = await admin.from("books").insert(without).select().single();
   }
+  if (insert.error) {
+    return NextResponse.json({ error: insert.error.message }, { status: 500 });
+  }
+  data = insert.data;
 
   // Episodes (for episodic novels) can be supplied at creation time too.
   if (Array.isArray(body.episodes) && body.episodes.length) {

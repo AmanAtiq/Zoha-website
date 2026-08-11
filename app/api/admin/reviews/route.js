@@ -58,7 +58,7 @@ export async function POST(request) {
       book_slug: bookSlug,
       episode_slug: body.episodeSlug || null,
       name: String(body.name || "Reader").trim(),
-      when_display: "Just now",
+      when_display: String(body.when || body.whenDisplay || "Just now").trim() || "Just now",
       rating: Math.min(5, Math.max(1, Number(body.rating) || 5)),
       text,
       approved: true,

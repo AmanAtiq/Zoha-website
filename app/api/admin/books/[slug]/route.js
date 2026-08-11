@@ -55,7 +55,11 @@ export async function PUT(request, { params }) {
   const row = bookToRow(incoming);
 
   // Upsert so editing a static-catalog book (not yet in the DB) creates it.
-  const { error } = await admin.from("books").upsert(row, { onConflict: "slug" });
+  let { error } = await admin.from("books").upsert(row, { onConflict: "slug" });
+  if (error && /prebook_only/i.test(error.message)) {
+    const { prebook_only: _drop, ...without } = row;
+    ({ error } = await admin.from("books").upsert(without, { onConflict: "slug" }));
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Replace episodes wholesale.

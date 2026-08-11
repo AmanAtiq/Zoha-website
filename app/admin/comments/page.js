@@ -3,16 +3,28 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../lib/admin-client";
-import { Alert } from "../../../components/admin/fields";
+import { Alert, TextInput, TextArea, Select, Field } from "../../../components/admin/fields";
+
+const emptyForm = () => ({
+  id: null,
+  bookSlug: "",
+  name: "",
+  rating: 5,
+  text: "",
+  when: "Just now",
+});
 
 export default function AdminCommentsPage() {
   const router = useRouter();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [bookFilter, setBookFilter] = useState("");
   const [bookOptions, setBookOptions] = useState([]);
   const [busyId, setBusyId] = useState(null);
+  const [form, setForm] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     try {
@@ -33,14 +45,79 @@ export default function AdminCommentsPage() {
   }, []);
 
   const removeReview = async (r) => {
+    if (!window.confirm("Delete this comment?")) return;
     setBusyId(r.id);
+    setError("");
     try {
       await api(`/api/admin/reviews/${r.id}`, { method: "DELETE" });
       setReviews((prev) => prev.filter((x) => x.id !== r.id));
+      if (form?.id === r.id) setForm(null);
     } catch (err) {
       setError(err.message);
     } finally {
       setBusyId(null);
+    }
+  };
+
+  const startAdd = () => {
+    setError("");
+    setNotice("");
+    setForm({
+      ...emptyForm(),
+      bookSlug: bookFilter || bookOptions[0]?.slug || "",
+    });
+  };
+
+  const startEdit = (r) => {
+    setError("");
+    setNotice("");
+    setForm({
+      id: r.id,
+      bookSlug: r.bookSlug || "",
+      name: r.name || "",
+      rating: r.rating || 5,
+      text: r.text || "",
+      when: r.when || "",
+    });
+  };
+
+  const saveForm = async () => {
+    if (!form) return;
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      const payload = {
+        bookSlug: form.bookSlug,
+        name: form.name,
+        rating: Number(form.rating) || 5,
+        text: form.text,
+        when: form.when,
+      };
+      if (form.id) {
+        const { review } = await api(`/api/admin/reviews/${form.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+        const bookTitle = bookOptions.find((b) => b.slug === review.bookSlug)?.title || "";
+        setReviews((prev) =>
+          prev.map((r) => (r.id === review.id ? { ...review, bookTitle: bookTitle || r.bookTitle } : r))
+        );
+        setNotice("Comment updated.");
+      } else {
+        const { review } = await api("/api/admin/reviews", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        const bookTitle = bookOptions.find((b) => b.slug === review.bookSlug)?.title || "";
+        setReviews((prev) => [{ ...review, bookTitle }, ...prev]);
+        setNotice("Comment added.");
+      }
+      setForm(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -51,11 +128,75 @@ export default function AdminCommentsPage() {
       <div className="adm-topbar">
         <div>
           <h1>Comments & reviews</h1>
-          <div className="adm-sub">Every reader comment on the site — delete any of them.</div>
+          <div className="adm-sub">Add, edit, or delete reader comments on any book.</div>
+        </div>
+        <div className="adm-topbar-actions">
+          <button className="adm-btn adm-btn-primary" type="button" onClick={startAdd}>
+            + Add comment
+          </button>
         </div>
       </div>
 
       {error && <Alert>{error}</Alert>}
+      {notice && <Alert kind="success">{notice}</Alert>}
+
+      {form && (
+        <div className="adm-card">
+          <div className="adm-card-head">
+            <h2>{form.id ? "Edit comment" : "New comment"}</h2>
+            <p>Shown on the book&apos;s reviews section on the public site.</p>
+          </div>
+          <div className="adm-card-body">
+            <div className="adm-grid-2">
+              <Select
+                label="Book"
+                value={form.bookSlug}
+                onChange={(e) => setForm((f) => ({ ...f, bookSlug: e.target.value }))}
+                options={bookOptions.map((b) => ({ value: b.slug, label: b.title }))}
+              />
+              <TextInput
+                label="Name"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Reader name"
+              />
+            </div>
+            <div className="adm-grid-2">
+              <Field label="Rating">
+                <select
+                  className="adm-select"
+                  value={form.rating}
+                  onChange={(e) => setForm((f) => ({ ...f, rating: Number(e.target.value) }))}
+                >
+                  {[5, 4, 3, 2, 1].map((n) => (
+                    <option key={n} value={n}>{n} ★</option>
+                  ))}
+                </select>
+              </Field>
+              <TextInput
+                label="When (display)"
+                value={form.when}
+                onChange={(e) => setForm((f) => ({ ...f, when: e.target.value }))}
+                placeholder="e.g. 2 days ago"
+              />
+            </div>
+            <TextArea
+              label="Comment"
+              rows={4}
+              value={form.text}
+              onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))}
+            />
+            <div className="adm-actions">
+              <button className="adm-btn adm-btn-primary" type="button" disabled={saving} onClick={saveForm}>
+                {saving ? "Saving…" : form.id ? "Save changes" : "Add comment"}
+              </button>
+              <button className="adm-btn adm-btn-ghost" type="button" onClick={() => setForm(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="adm-empty">Loading…</div>
@@ -82,7 +223,10 @@ export default function AdminCommentsPage() {
                     {r.bookTitle && <span className="adm-badge">{r.bookTitle}</span>}
                     <span className="adm-comment-meta">{r.when}</span>
                     <span className="adm-actions adm-actions-end">
-                      <button className="adm-btn adm-btn-danger adm-btn-sm" disabled={busyId === r.id} onClick={() => removeReview(r)}>
+                      <button className="adm-btn adm-btn-outline adm-btn-sm" type="button" onClick={() => startEdit(r)}>
+                        Edit
+                      </button>
+                      <button className="adm-btn adm-btn-danger adm-btn-sm" type="button" disabled={busyId === r.id} onClick={() => removeReview(r)}>
                         Delete
                       </button>
                     </span>

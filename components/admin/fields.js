@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { readFileAsDataUrl, uploadFile } from "../../lib/admin-client";
+import { uploadFile } from "../../lib/admin-client";
 
 export function Field({ label, hint, children }) {
   return (
@@ -149,8 +149,7 @@ export function ImageField({ label, value, onChange, wide, folder = "images", hi
     setBusy(true);
     setError("");
     try {
-      const dataUrl = await readFileAsDataUrl(file);
-      const url = await uploadFile(dataUrl, file.name, folder);
+      const url = await uploadFile(file, file.name, folder);
       onChange(url);
     } catch (err) {
       setError(err.message);
@@ -189,11 +188,14 @@ export function FileField({ label, value, onChange, hint, placeholder = "Select 
 
   const upload = async (file) => {
     if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      setError("File too large (max 50MB).");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      const dataUrl = await readFileAsDataUrl(file);
-      const url = await uploadFile(dataUrl, file.name, "pdf");
+      const url = await uploadFile(file, file.name, "pdf");
       onChange(url);
     } catch (err) {
       setError(err.message);

@@ -26,7 +26,7 @@ export default async function HomePage() {
       <EpisodicNovels items={home.episodic} />
       <ShortNovels items={home.shortNovels} />
       <Afsanay items={home.afsanay} />
-      <Quote text={home.quoteText} cite={home.quoteCite} />
+      <Quote quotes={home.quotes} text={home.quoteText} cite={home.quoteCite} />
       <Reviews testimonials={home.testimonials} lede={home.reviewsLede} />
       <Newsletter />
       <FAQ faqs={home.faqs} />

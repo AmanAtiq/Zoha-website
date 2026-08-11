@@ -83,6 +83,8 @@ export default function BookEditorForm({ initialBook, isNew }) {
   const [notice, setNotice] = useState("");
   const [activeTab, setActiveTab] = useState("identity");
   const [expandedEpisode, setExpandedEpisode] = useState(null);
+  const [reviewForm, setReviewForm] = useState(null);
+  const [savingReview, setSavingReview] = useState(false);
 
   const set = (patch) => setBook((b) => ({ ...b, ...patch }));
 
@@ -117,11 +119,62 @@ export default function BookEditorForm({ initialBook, isNew }) {
   };
 
   const reviewAction = async (r) => {
+    if (!window.confirm("Delete this comment?")) return;
     try {
       await api(`/api/admin/reviews/${r.id}`, { method: "DELETE" });
       setBook((b) => ({ ...b, reviews: b.reviews.filter((x) => x.id !== r.id) }));
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const startAddReview = () => {
+    setReviewForm({ id: null, name: "", rating: 5, text: "", when: "Just now" });
+  };
+
+  const startEditReview = (r) => {
+    setReviewForm({
+      id: r.id,
+      name: r.name || "",
+      rating: r.rating || 5,
+      text: r.text || "",
+      when: r.when || "",
+    });
+  };
+
+  const saveReviewForm = async () => {
+    if (!reviewForm) return;
+    setSavingReview(true);
+    setError("");
+    try {
+      const payload = {
+        bookSlug: book.slug,
+        name: reviewForm.name,
+        rating: Number(reviewForm.rating) || 5,
+        text: reviewForm.text,
+        when: reviewForm.when,
+      };
+      if (reviewForm.id) {
+        const { review } = await api(`/api/admin/reviews/${reviewForm.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+        setBook((b) => ({
+          ...b,
+          reviews: b.reviews.map((r) => (r.id === review.id ? review : r)),
+        }));
+      } else {
+        const { review } = await api("/api/admin/reviews", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        setBook((b) => ({ ...b, reviews: [review, ...b.reviews] }));
+      }
+      setReviewForm(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingReview(false);
     }
   };
 
@@ -355,8 +408,54 @@ export default function BookEditorForm({ initialBook, isNew }) {
 
       <div className="adm-card" data-book-tab="reviews">
         <h2>Reviews on this book</h2>
-        <p className="adm-card-hint">Every reader comment on this book — delete any of them.</p>
-        {book.reviews.length === 0 && <div className="adm-empty">No reviews yet.</div>}
+        <p className="adm-card-hint">Add, edit, or delete reader comments shown on this book&apos;s page.</p>
+        <div className="adm-actions" style={{ marginBottom: 12 }}>
+          <button className="adm-btn adm-btn-outline adm-btn-sm" type="button" onClick={startAddReview}>
+            + Add comment
+          </button>
+        </div>
+        {reviewForm && (
+          <div className="adm-kv-editor">
+            <div className="adm-grid-2">
+              <TextInput
+                label="Name"
+                value={reviewForm.name}
+                onChange={(e) => setReviewForm((f) => ({ ...f, name: e.target.value }))}
+              />
+              <Field label="Rating">
+                <select
+                  className="adm-select"
+                  value={reviewForm.rating}
+                  onChange={(e) => setReviewForm((f) => ({ ...f, rating: Number(e.target.value) }))}
+                >
+                  {[5, 4, 3, 2, 1].map((n) => (
+                    <option key={n} value={n}>{n} ★</option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <TextInput
+              label="When (display)"
+              value={reviewForm.when}
+              onChange={(e) => setReviewForm((f) => ({ ...f, when: e.target.value }))}
+            />
+            <TextArea
+              label="Comment"
+              rows={3}
+              value={reviewForm.text}
+              onChange={(e) => setReviewForm((f) => ({ ...f, text: e.target.value }))}
+            />
+            <div className="adm-actions">
+              <button className="adm-btn adm-btn-primary adm-btn-sm" type="button" disabled={savingReview} onClick={saveReviewForm}>
+                {savingReview ? "Saving…" : reviewForm.id ? "Save" : "Add"}
+              </button>
+              <button className="adm-btn adm-btn-ghost adm-btn-sm" type="button" onClick={() => setReviewForm(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        {book.reviews.length === 0 && !reviewForm && <div className="adm-empty">No reviews yet.</div>}
         {book.reviews.map((r) => (
           <div className="adm-comment" key={r.id}>
             <div className="adm-comment-head">
@@ -364,7 +463,10 @@ export default function BookEditorForm({ initialBook, isNew }) {
               <span>{"★".repeat(r.rating)}</span>
               <span className="adm-comment-meta">{r.when}</span>
               <span className="adm-actions adm-actions-end">
-                <button className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => reviewAction(r)}>
+                <button className="adm-btn adm-btn-outline adm-btn-sm" type="button" onClick={() => startEditReview(r)}>
+                  Edit
+                </button>
+                <button className="adm-btn adm-btn-danger adm-btn-sm" type="button" onClick={() => reviewAction(r)}>
                   Delete
                 </button>
               </span>

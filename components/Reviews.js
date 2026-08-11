@@ -7,6 +7,7 @@ export default function Reviews({ testimonials = [], lede = "" }) {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    if (!testimonials.length) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion || isPaused) return;
 
@@ -15,7 +16,7 @@ export default function Reviews({ testimonials = [], lede = "" }) {
     }, 5500);
 
     return () => window.clearInterval(timer);
-  }, [isPaused]);
+  }, [isPaused, testimonials.length]);
 
   const select = (index) => setActive(index);
   return (
@@ -24,8 +25,7 @@ export default function Reviews({ testimonials = [], lede = "" }) {
         <div className="section-head section-head--center">
           <p className="eyebrow eyebrow--dark">Reader Voices</p>
           <h2>Reviews</h2>
-          <p className="section-lede">{lede || "Sample entries below — swap in real reader reviews and names."}</p>
-        </div>
+             </div>
 
         <div
           className="testimonial-slider"
@@ -41,7 +41,7 @@ export default function Reviews({ testimonials = [], lede = "" }) {
             {testimonials.map((testimonial, index) => (
               <blockquote
                 className={`testimonial${index === active ? " is-active" : ""}`}
-                key={testimonial.source + index}
+                key={testimonial.id ?? `${testimonial.source}-${index}`}
                 aria-hidden={index !== active}
               >
                 <p>{testimonial.quote}</p>
@@ -54,7 +54,7 @@ export default function Reviews({ testimonials = [], lede = "" }) {
             {testimonials.map((testimonial, index) => (
               <button
                 type="button"
-                key={testimonial.source + index}
+                key={testimonial.id ?? `dot-${index}`}
                 role="tab"
                 aria-selected={index === active}
                 aria-label={`Show review ${index + 1}`}

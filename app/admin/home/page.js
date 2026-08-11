@@ -70,12 +70,12 @@ export default function AdminHomePage() {
   const sortedHero = books
     .filter((b) => heroSlugs.includes(b.slug))
     .sort((a, b) => heroSlugs.indexOf(a.slug) - heroSlugs.indexOf(b.slug));
-  const libraryBooks = books.filter((b) => !heroSlugs.includes(b.slug));
+  const libraryBooks = books.filter((b) => !heroSlugs.includes(b.slug) && !b.prebookOnly && !b.prebook_only);
   const selectedBySection = (slugs, type) =>
-    books.filter((b) => slugs.includes(b.slug) && b.type === type)
+    books.filter((b) => slugs.includes(b.slug) && b.type === type && !b.prebookOnly && !b.prebook_only)
       .sort((a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug));
   const visibleByType = (type) => books
-    .filter((b) => b.type === type && b.homeVisible)
+    .filter((b) => b.type === type && b.homeVisible && !b.prebookOnly && !b.prebook_only)
     .sort((a, b) => (a.homeOrder || 0) - (b.homeOrder || 0));
   const sectionLimit = { episodic: 1, "short-novel": 2, afsana: 3 };
   const visibleTopByType = (type) => visibleByType(type).slice(0, sectionLimit[type]);
@@ -85,7 +85,7 @@ export default function AdminHomePage() {
     ? selectedBySection(shortNovelSlugs, "short-novel").slice(0, sectionLimit["short-novel"]) : homeSections.shortNovels;
   const selectedAfsanay = settings && Object.prototype.hasOwnProperty.call(settings, "afsanaSlugs")
     ? selectedBySection(afsanaSlugs, "afsana").slice(0, sectionLimit.afsana) : homeSections.afsanay;
-  const libraryBySection = (selectedSlugs, type) => books.filter((b) => b.type === type && !selectedSlugs.includes(b.slug));
+  const libraryBySection = (selectedSlugs, type) => books.filter((b) => b.type === type && !selectedSlugs.includes(b.slug) && !b.prebookOnly && !b.prebook_only);
   const libraryEpisodic = libraryBySection(selectedEpisodic.map((b) => b.slug), "episodic");
   const libraryShortNovels = libraryBySection(selectedShortNovels.map((b) => b.slug), "short-novel");
   const libraryAfsanay = libraryBySection(selectedAfsanay.map((b) => b.slug), "afsana");
@@ -127,16 +127,66 @@ export default function AdminHomePage() {
   };
   const saveTestimonial = async (t) => {
     setSavingTestimonial(t.id);
+    setError("");
+    setNotice("");
     try {
-      await api(`/api/admin/testimonials/${t.id}`, { method: "PUT", body: JSON.stringify({ quote: t.quote, source: t.source, active: t.active, sortOrder: t.sortOrder }) });
+      const quote = String(t.quote || "").trim();
+      if (t.active && !quote) {
+        throw new Error("Add review text before making it visible on the homepage.");
+      }
+      const order = Number(t.sortOrder);
+      if (!Number.isFinite(order)) {
+        throw new Error("Order must be a number.");
+      }
+      const clash = testimonials.find(
+        (other) => other.id !== t.id && Number(other.sortOrder) === order
+      );
+      if (clash) {
+        throw new Error(`Order ${order} is already used by another review. Pick a unique order.`);
+      }
+      const { testimonial } = await api(`/api/admin/testimonials/${t.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          quote: t.quote,
+          source: t.source,
+          active: t.active,
+          sortOrder: order,
+        }),
+      });
+      if (testimonial) {
+        setTestimonials((prev) => prev.map((x) => (x.id === t.id ? { ...x, ...testimonial } : x)));
+      }
       setNotice("Review updated.");
-    } catch (err) { setError(err.message); } finally { setSavingTestimonial(null); }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingTestimonial(null);
+    }
   };
   const addTestimonial = async () => {
+    setError("");
     try {
-      const { testimonial } = await api("/api/admin/testimonials", { method: "POST", body: JSON.stringify({ quote: "", source: "", active: true, sortOrder: testimonials.length }) });
-      setTestimonials((prev) => [...prev, { ...testimonial, quote: "", source: "" }]);
-    } catch (err) { setError(err.message); }
+      const used = new Set(testimonials.map((t) => Number(t.sortOrder)));
+      let nextOrder = testimonials.length;
+      while (used.has(nextOrder)) nextOrder += 1;
+      const { testimonial } = await api("/api/admin/testimonials", {
+        method: "POST",
+        body: JSON.stringify({ quote: "", source: "", active: false, sortOrder: nextOrder }),
+      });
+      setTestimonials((prev) => [
+        ...prev,
+        {
+          id: testimonial.id,
+          quote: testimonial.quote || "",
+          source: testimonial.source || "",
+          active: false,
+          sortOrder: testimonial.sortOrder ?? nextOrder,
+        },
+      ]);
+      setNotice("Review slot added — fill it in, then turn on “Visible on homepage” and Save.");
+    } catch (err) {
+      setError(err.message);
+    }
   };
   const deleteTestimonial = async (id) => {
     if (!window.confirm("Delete this homepage review?")) return;
@@ -210,9 +260,9 @@ export default function AdminHomePage() {
 
         {activeTab === "featured" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Featured on the homepage</h2><p>Choose the books shown in each dedicated shelf further down the page.</p></div><div className="adm-card-body">{renderSection("episodicSlugs", "Featured episodic novel", "Only one episodic novel appears at a time.", selectedEpisodic, libraryEpisodic, "episodic")}{renderSection("shortNovelSlugs", "Featured short novels", "Only two short novels appear on the homepage.", selectedShortNovels, libraryShortNovels, "short-novel")}{renderSection("afsanaSlugs", "Featured afsanay", "Only three afsanay appear on the homepage.", selectedAfsanay, libraryAfsanay, "afsana")}</div></div></div>}
 
-        {activeTab === "reviews" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Section text</h2><p>Introductory copy shown above the homepage reviews.</p></div><div className="adm-card-body"><TextArea label="Reviews lede" rows={2} value={settings.reviewsLede} onChange={(e) => set({ reviewsLede: e.target.value })} /></div></div><div className="adm-card"><div className="adm-card-head"><h2>Reviews shown</h2><p>These are the quote-slider entries on the homepage.</p></div><div className="adm-card-body">{testimonials.map((t) => <div className="adm-kv-editor" key={t.id}><div className="adm-row-between adm-testimonial-header"><Toggle label="Visible on homepage" checked={t.active} onChange={(v) => updateTestimonial(t.id, { active: v })} /><div className="adm-actions"><button className="adm-btn adm-btn-primary adm-btn-sm" disabled={savingTestimonial === t.id} onClick={() => saveTestimonial(t)}>Save</button><button className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => deleteTestimonial(t.id)}>Delete</button></div></div><TextArea label="Quote" rows={3} value={t.quote} onChange={(e) => updateTestimonial(t.id, { quote: e.target.value })} /><div className="adm-grid-2"><TextInput label="Source" value={t.source} placeholder="e.g. Reader, Instagram" onChange={(e) => updateTestimonial(t.id, { source: e.target.value })} /><TextInput label="Order" type="number" value={t.sortOrder} onChange={(e) => updateTestimonial(t.id, { sortOrder: Number(e.target.value) })} /></div></div>)}<button className="adm-btn adm-btn-outline adm-btn-sm" onClick={addTestimonial}>+ Add review</button></div></div></div>}
+        {activeTab === "reviews" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Reviews shown</h2><p>These are the quote-slider entries on the homepage.</p></div><div className="adm-card-body">{testimonials.map((t) => <div className="adm-kv-editor" key={t.id}><div className="adm-row-between adm-testimonial-header"><Toggle label="Visible on homepage" checked={t.active} onChange={(v) => updateTestimonial(t.id, { active: v })} /><div className="adm-actions"><button className="adm-btn adm-btn-primary adm-btn-sm" disabled={savingTestimonial === t.id} onClick={() => saveTestimonial(t)}>Save</button><button className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => deleteTestimonial(t.id)}>Delete</button></div></div><TextArea label="Quote" rows={3} value={t.quote} onChange={(e) => updateTestimonial(t.id, { quote: e.target.value })} /><div className="adm-grid-2"><TextInput label="Source" value={t.source} placeholder="e.g. Reader, Instagram" onChange={(e) => updateTestimonial(t.id, { source: e.target.value })} /><TextInput label="Order" type="number" value={t.sortOrder} onChange={(e) => updateTestimonial(t.id, { sortOrder: Number(e.target.value) })} /></div></div>)}<button className="adm-btn adm-btn-outline adm-btn-sm" onClick={addTestimonial}>+ Add review</button></div></div></div>}
 
-        {activeTab === "quote" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Quote band</h2><p>The centered quote between the homepage sections.</p></div><div className="adm-card-body adm-grid-2"><div><TextArea label="Quote text" rows={3} value={settings.quoteText} onChange={(e) => set({ quoteText: e.target.value })} /><TextInput label="Quote attribution" value={settings.quoteCite} onChange={(e) => set({ quoteCite: e.target.value })} /></div><div className="adm-quote-preview"><p>{settings.quoteText}</p><span>{settings.quoteCite}</span></div></div></div></div>}
+        {activeTab === "quote" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Quote band</h2><p>Slidable quotes between homepage sections. Each slide supports Urdu and English — same fonts as the novel detail quote.</p></div><div className="adm-card-body">{(settings.quotes || []).map((q, i) => <div className="adm-kv-editor" key={i}><div className="adm-row-between adm-testimonial-header"><strong>Quote {i + 1}</strong><div className="adm-actions"><button type="button" className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === 0} onClick={() => { const next = [...settings.quotes]; [next[i - 1], next[i]] = [next[i], next[i - 1]]; set({ quotes: next }); }}>↑</button><button type="button" className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === settings.quotes.length - 1} onClick={() => { const next = [...settings.quotes]; [next[i], next[i + 1]] = [next[i + 1], next[i]]; set({ quotes: next }); }}>↓</button><button type="button" className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => set({ quotes: settings.quotes.filter((_, idx) => idx !== i) })}>Remove</button></div></div><TextArea label="Quote (Urdu)" rows={3} value={q.ur || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, ur: e.target.value } : item); set({ quotes: next }); }} dir="rtl" /><TextArea label="Quote (English)" rows={2} value={q.en || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, en: e.target.value } : item); set({ quotes: next }); }} /><TextInput label="Attribution" value={q.cite || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, cite: e.target.value } : item); set({ quotes: next }); }} /><div className="adm-quote-preview">{q.ur && <p className="adm-quote-preview-ur" lang="ur" dir="rtl">{q.ur}</p>}{q.en && <p>{q.en}</p>}<span>{q.cite || "— Zoha Asif"}</span></div></div>)}<button type="button" className="adm-btn adm-btn-outline adm-btn-sm" onClick={() => set({ quotes: [...(settings.quotes || []), { ur: "", en: "", cite: "— Zoha Asif" }] })}>+ Add quote</button></div></div></div>}
 
         {activeTab === "about" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>About the author</h2><p>The text and portrait shown in the homepage author section.</p></div><div className="adm-card-body"><ImageField label="Portrait" value={authorIntro.portrait} onChange={(url) => set({ authorIntro: { ...authorIntro, portrait: url } })} wide /><TextArea label="Mission (Urdu)" rows={2} value={authorIntro.missionUr} onChange={(e) => set({ authorIntro: { ...authorIntro, missionUr: e.target.value } })} dir="rtl" /><TextArea label="Mission (English)" rows={2} value={authorIntro.mission} onChange={(e) => set({ authorIntro: { ...authorIntro, mission: e.target.value } })} /><TextArea label="Poem (Urdu)" rows={5} value={authorIntro.poem} onChange={(e) => set({ authorIntro: { ...authorIntro, poem: e.target.value } })} dir="rtl" /><TextArea label="Biography" rows={6} value={authorIntro.bio} onChange={(e) => set({ authorIntro: { ...authorIntro, bio: e.target.value } })} /></div></div></div>}
 

@@ -38,9 +38,7 @@ export default function AuthorIntro({ intro = {} }) {
           <a href="/#socials" className="btn btn-outline-dark">
             Get in Touch
           </a>
-          <span className="placeholder-flag" style={{ display: "block", width: "fit-content", marginTop: 16 }}>
-            Portrait pending
-          </span>
+        
         </div>
       </div>
     </section>
