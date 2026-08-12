@@ -332,16 +332,19 @@ h1, h2, h3, h4 {
 .slider-dots button.is-active { background: var(--white); width: 26px; border-radius: 999px; }
 
 @media (max-width: 700px) {
-  .hero { height: 92vh; }
+  .hero { height: 78vh; min-height: 520px; max-height: 680px; }
   .slide-bg { background-position: 15% center; }
-  .slide-content { padding-bottom: 14%; max-width: 92%; }
+  .slide-content { padding-bottom: 96px; max-width: 92%; }
   .slide-overlay { background: linear-gradient(180deg, rgba(20,10,12,0.4) 0%, rgba(20,10,12,0.5) 45%, rgba(20,10,12,0.9) 100%); }
   .slide-title {
     display: block;
-    font-size: 2.1rem;
+    font-size: 1.8rem;
+    line-height: 1.05;
     color: var(--white);
     margin-bottom: 10px;
   }
+  .slide-type { font-size: 0.68rem; letter-spacing: 0.12em; margin-bottom: 10px; }
+  .slide-actions .btn { padding: 10px 14px; font-size: 0.72rem; }
   .slider-arrow { display: none; }
 }
 
@@ -523,7 +526,7 @@ h1, h2, h3, h4 {
 }
 .quote-slider {
   position: relative;
-  max-width: 780px;
+  max-width: 1000px;
   margin: 0 auto;
   min-height: 180px;
 }
@@ -550,7 +553,7 @@ h1, h2, h3, h4 {
   font-size: 1.25rem;
   line-height: 2.4;
   color: var(--white);
-  max-width: 62ch;
+  max-width: 82ch;
   margin: 0 auto 12px;
 }
 .quote-section .quote-en {
@@ -558,7 +561,7 @@ h1, h2, h3, h4 {
   font-style: italic;
   font-size: 1.3rem;
   color: var(--white);
-  max-width: 62ch;
+  max-width: 82ch;
   margin: 0 auto 20px;
   line-height: 1.55;
   opacity: 0.92;
@@ -575,6 +578,13 @@ h1, h2, h3, h4 {
   text-transform: uppercase;
   font-size: 0.82rem;
   font-weight: 600;
+}
+@media (max-width: 700px) {
+  .quote-section { padding: 68px 0; }
+  .quote-slider { min-height: 150px; }
+  .quote-section .quote-ur,
+  .quote-section .quote-en { font-size: 1.05rem; }
+  .quote-section .quote-ur + .quote-en { font-size: 0.92rem; }
 }
 .quote-dots {
   display: flex;
@@ -650,7 +660,8 @@ h1, h2, h3, h4 {
 /* ---------- Collection landing pages ---------- */
 .collection-page { padding-top: 84px; }
 .collection-hero { position: relative; height: 620px; overflow: hidden; background: var(--charcoal-dark); }
-.collection-hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; }
+.collection-hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; opacity: 0; transition: opacity 0.7s ease; }
+.collection-hero-image.is-active { opacity: 1; }
 .collection-hero-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,10,12,0.78) 0%, rgba(20,10,12,0.42) 48%, rgba(20,10,12,0.08) 76%); }
 .collection-hero-inner { position: relative; z-index: 1; display: flex; align-items: flex-end; height: 100%; padding-bottom: 72px; }
 .collection-hero-copy { max-width: 620px; }
@@ -658,6 +669,10 @@ h1, h2, h3, h4 {
 .collection-hero-copy > p:not(.collection-hero-type) { max-width: 45ch; margin-bottom: 26px; color: rgba(250,245,240,0.8); font-size: 1.08rem; }
 .collection-hero-type { margin-bottom: 14px; color: var(--rose-light); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
 .collection-hero-actions { display: flex; flex-wrap: wrap; gap: 14px; }
+.collection-hero-current { position: absolute; right: clamp(20px, 5vw, 64px); bottom: 34px; z-index: 2; max-width: min(280px, 70vw); color: rgba(250,245,240,0.72); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-align: right; text-transform: uppercase; }
+.collection-hero-dots { position: absolute; right: 50%; bottom: 34px; z-index: 3; display: flex; gap: 8px; transform: translateX(50%); }
+.collection-hero-dots button { width: 8px; height: 8px; border-radius: 50%; background: rgba(250,245,240,0.45); transition: background var(--transition), width var(--transition); }
+.collection-hero-dots button.is-active { width: 24px; border-radius: 999px; background: var(--white); }
 .collection-intro { border-bottom: 1px solid rgba(107,30,45,0.12); background: var(--white); }
 .collection-intro-inner { display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; align-items: center; gap: 34px; padding-top: 34px; padding-bottom: 34px; }
 .collection-intro-copy { max-width: 650px; color: var(--maroon-dark); font-family: var(--font-heading); font-size: clamp(1.35rem, 2.6vw, 2rem); font-style: italic; line-height: 1.25; }
@@ -695,11 +710,16 @@ h1, h2, h3, h4 {
 }
 
 @media (max-width: 700px) {
-  .collection-hero { height: 92vh; min-height: 560px; }
+  .collection-hero { height: 78vh; min-height: 520px; max-height: 680px; }
   .collection-hero-image { object-position: 20% center; }
   .collection-hero-overlay { background: linear-gradient(180deg, rgba(20,10,12,0.36) 0%, rgba(20,10,12,0.52) 44%, rgba(20,10,12,0.92) 100%); }
-  .collection-hero-inner { padding-bottom: 14%; }
-  .collection-hero-copy h1 { font-size: clamp(3.2rem, 15vw, 5rem); }
+  .collection-hero-inner { padding-bottom: 92px; }
+  .collection-hero-copy h1 { font-size: 2.2rem; line-height: 0.98; }
+  .collection-hero-copy > p:not(.collection-hero-type) { font-size: 0.86rem; margin-bottom: 20px; }
+  .collection-hero-type { font-size: 0.62rem; letter-spacing: 0.12em; }
+  .collection-hero-actions .btn { padding: 10px 14px; font-size: 0.68rem; }
+  .collection-hero-current { right: auto; left: 20px; bottom: 28px; max-width: calc(100% - 40px); text-align: left; font-size: 0.58rem; }
+  .collection-hero-dots { right: 50%; bottom: 28px; left: auto; transform: translateX(50%); }
   .collection-intro-inner { display: block; }
   .collection-intro-copy { margin: 14px 0 16px; }
   .collection-count { display: block; }
@@ -814,7 +834,8 @@ h1, h2, h3, h4 {
 @media (max-width: 700px) {
   .prebooking-hero-inner { display: block; min-height: 0; padding-top: 60px; padding-bottom: 90px; }
   .prebooking-hero-copy { margin-bottom: 58px; }
-  .prebooking-hero-copy h1 { font-size: clamp(3.3rem, 16vw, 5rem); }
+  .prebooking-hero-copy h1 { font-size: 2.65rem; line-height: 0.98; }
+  .prebooking-hero-lede { font-size: 0.95rem; }
   .prebooking-hero-feature { width: min(76vw, 300px); }
   .prebooking-benefits-grid { grid-template-columns: 1fr; gap: 20px; }
   .prebooking-section-head { display: block; }

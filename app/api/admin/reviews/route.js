@@ -19,18 +19,36 @@ export async function GET(request) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const { data: books } = await admin.from("books").select("slug, title");
+  const [{ data: books }, { data: episodes }] = await Promise.all([
+    admin.from("books").select("slug, title"),
+    admin.from("episodes").select("book_slug, slug, title, episode_number").order("episode_number", { ascending: true }),
+  ]);
   const titleBySlug = {};
   for (const b of books || []) titleBySlug[b.slug] = b.title;
+  const episodesByBook = {};
+  const episodeTitleByKey = {};
+  for (const ep of episodes || []) {
+    (episodesByBook[ep.book_slug] ||= []).push({
+      slug: ep.slug,
+      title: ep.title || ep.slug,
+      episodeNumber: ep.episode_number || 0,
+    });
+    episodeTitleByKey[`${ep.book_slug}:${ep.slug}`] = ep.title || ep.slug;
+  }
 
   const reviews = (data || []).map((r) => ({
     ...rowToReview(r),
     bookTitle: titleBySlug[r.book_slug] || r.book_slug || "",
+    episodeTitle: r.episode_slug ? episodeTitleByKey[`${r.book_slug}:${r.episode_slug}`] || r.episode_slug : "",
   }));
 
   return NextResponse.json({
     reviews,
-    bookOptions: (books || []).map((book) => ({ slug: book.slug, title: book.title })),
+    bookOptions: (books || []).map((book) => ({
+      slug: book.slug,
+      title: book.title,
+      episodes: episodesByBook[book.slug] || [],
+    })),
   });
 }
 

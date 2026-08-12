@@ -31,6 +31,15 @@ export default function ReviewSection({ rating, reviews: initialReviews, formPro
         }),
       });
       if (res.ok) {
+        setReviews((current) => [
+          {
+            name: name.trim() || "Reader",
+            rating: sel || 5,
+            text: trimmed,
+            when: "Just now",
+          },
+          ...current,
+        ]);
         setNotice("Thanks! Your review is now live on this page.");
         setName("");
         setText("");

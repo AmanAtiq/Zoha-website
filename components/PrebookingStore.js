@@ -104,7 +104,6 @@ export default function PrebookingStore({ items = [] }) {
               <article className="prebooking-card" key={book.slug}>
                 <a className="prebooking-cover" href={`/prebooking/${book.slug}`}>
                   <img src={book.cover} alt={`${book.title} cover`} />
-                  <span className="prebooking-card-badge">{book.typeLabel}</span>
                 </a>
                 <div className="prebooking-card-body">
                   <div className="prebooking-card-title-row">

@@ -25,15 +25,16 @@ function normalizeAdminQuotes(quotes, quoteText, quoteCite, authorIntro) {
       ur: q.ur || "",
       en: q.en || q.text || "",
       cite: q.cite || "— Zoha Asif",
+      active: q.active ?? true,
     }));
   }
   if (Array.isArray(authorIntro?._quotes) && authorIntro._quotes.length) {
     return normalizeAdminQuotes(authorIntro._quotes);
   }
   if (quoteText) {
-    return [{ ur: "", en: quoteText, cite: quoteCite || "— Zoha Asif" }];
+    return [{ ur: "", en: quoteText, cite: quoteCite || "— Zoha Asif", active: true }];
   }
-  return [{ ur: "", en: "", cite: "— Zoha Asif" }];
+  return [{ ur: "", en: "", cite: "— Zoha Asif", active: true }];
 }
 
 export async function GET() {
@@ -44,7 +45,7 @@ export async function GET() {
   const [settingsRes, testRes, booksRes] = await Promise.all([
     admin.from("home_settings").select("*").eq("id", 1).maybeSingle(),
     admin.from("testimonials").select("*").order("sort_order", { ascending: true }),
-    admin.from("books").select("slug, title, type, type_label, cover, home_visible, home_order").order("home_order", { ascending: true }),
+    admin.from("books").select("slug, title, type, type_label, cover, home_visible, home_order, prebook_only, published").order("home_order", { ascending: true }),
   ]);
 
   // Show what's actually live on the site even before the DB is seeded: the
@@ -72,6 +73,7 @@ export async function GET() {
             settingsRes.data.quote_cite,
             settingsRes.data.author_intro
           ),
+          collectionSliders: settingsRes.data.collection_sliders || {},
           authorIntro,
           faqs: settingsRes.data.faqs || [],
         };
@@ -89,6 +91,8 @@ export async function GET() {
     cover: b.cover || "",
     home_visible: b.home_visible,
     home_order: b.home_order,
+    prebookOnly: !!b.prebook_only,
+    published: b.published ?? true,
   }));
   const books = dbBooks.length ? dbBooks : getSeedBooksForAdmin().map((b) => ({
     slug: b.slug,
@@ -98,6 +102,8 @@ export async function GET() {
     cover: b.cover || "",
     home_visible: b.homeVisible,
     home_order: b.homeOrder,
+    prebookOnly: !!b.prebookOnly,
+    published: b.published ?? true,
   }));
 
   const home = await getHome();
@@ -122,69 +128,60 @@ export async function PUT(request) {
   }
 
   const s = body.settings || {};
-  const sectionClamp = (slugs, type) => {
-    const limit = type === "episodic" ? 1 : type === "short-novel" ? 2 : 3;
-    return (slugs || []).slice(0, limit);
-  };
-
   const quotes = Array.isArray(s.quotes)
     ? s.quotes.map((q) => ({
         ur: String(q.ur || "").trim(),
         en: String(q.en || "").trim(),
         cite: String(q.cite || "").trim() || "— Zoha Asif",
+        active: q.active ?? true,
       }))
     : [];
   const first = quotes[0] || {};
   const authorIntro = { ...(s.authorIntro || {}) };
   delete authorIntro._quotes;
 
-  const { error } = await admin.from("home_settings").upsert(
-    {
+  const makeRow = (includeQuotes = true, includeCollectionSliders = true) => {
+    const row = {
       id: 1,
       hero_slugs: s.heroSlugs ?? [],
-      episodic_slugs: sectionClamp(s.episodicSlugs, "episodic"),
-      short_novel_slugs: sectionClamp(s.shortNovelSlugs, "short-novel"),
-      afsana_slugs: sectionClamp(s.afsanaSlugs, "afsana"),
+      episodic_slugs: s.episodicSlugs ?? [],
+      short_novel_slugs: s.shortNovelSlugs ?? [],
+      afsana_slugs: s.afsanaSlugs ?? [],
       hero_autoplay_ms: Number(s.heroAutoplayMs) || 6500,
       hero_lede: s.heroLede || "",
       reviews_lede: s.reviewsLede || "",
       quote_text: first.en || first.ur || s.quoteText || "",
       quote_cite: first.cite || s.quoteCite || "",
-      quotes,
       author_intro: authorIntro,
       faqs: s.faqs || [],
-    },
-    { onConflict: "id" }
-  );
+    };
+    if (includeQuotes) row.quotes = quotes;
+    if (includeCollectionSliders) row.collection_sliders = s.collectionSliders || {};
+    return row;
+  };
+
+  const saveRow = (row) => admin.from("home_settings").upsert(row, { onConflict: "id" });
+  const { error } = await saveRow(makeRow(true, true));
 
   if (error) {
     // Older DBs may not have the `quotes` column yet — save the first quote
     // into legacy fields and stash the full list on author_intro until migrated.
     if (/quotes/i.test(error.message)) {
-      const fallback = await admin.from("home_settings").upsert(
-        {
-          id: 1,
-          hero_slugs: s.heroSlugs ?? [],
-          episodic_slugs: sectionClamp(s.episodicSlugs, "episodic"),
-          short_novel_slugs: sectionClamp(s.shortNovelSlugs, "short-novel"),
-          afsana_slugs: sectionClamp(s.afsanaSlugs, "afsana"),
-          hero_autoplay_ms: Number(s.heroAutoplayMs) || 6500,
-          hero_lede: s.heroLede || "",
-          reviews_lede: s.reviewsLede || "",
-          quote_text: first.en || first.ur || s.quoteText || "",
-          quote_cite: first.cite || s.quoteCite || "",
-          author_intro: {
-            ...authorIntro,
-            _quotes: quotes,
-          },
-          faqs: s.faqs || [],
-        },
-        { onConflict: "id" }
-      );
+      const fallbackRow = makeRow(false, !/collection_sliders/i.test(error.message));
+      fallbackRow.author_intro = { ...authorIntro, _quotes: quotes };
+      const fallback = await saveRow(fallbackRow);
       if (fallback.error) return NextResponse.json({ error: fallback.error.message }, { status: 500 });
       return NextResponse.json({
         ok: true,
         warning: "Run: alter table public.home_settings add column if not exists quotes jsonb default '[]';",
+      });
+    }
+    if (/collection_sliders/i.test(error.message)) {
+      const fallback = await saveRow(makeRow(true, false));
+      if (fallback.error) return NextResponse.json({ error: fallback.error.message }, { status: 500 });
+      return NextResponse.json({
+        ok: true,
+        warning: "Run: alter table public.home_settings add column if not exists collection_sliders jsonb default '{}';",
       });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });

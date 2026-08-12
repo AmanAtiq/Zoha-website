@@ -22,27 +22,13 @@ const COLLECTIONS = {
   },
 };
 
-export default function CollectionPage({ type, items = [] }) {
+export default function CollectionPage({ type, items = [], heroSlides = [] }) {
   const collection = COLLECTIONS[type] || {};
-  const heroImage = items[0]?.hero;
+  const slides = heroSlides.length ? heroSlides : items.slice(0, 1);
 
   return (
     <main className={`collection-page collection-page--${type}`}>
-      <section className="collection-hero">
-        {heroImage && <img className="collection-hero-image" src={heroImage} alt="" />}
-        <div className="collection-hero-overlay" />
-        <div className="container collection-hero-inner">
-          <div className="collection-hero-copy">
-            <p className="collection-hero-type">{collection.eyebrow}</p>
-            <h1>{collection.title}</h1>
-            <p>{collection.description}</p>
-            <div className="collection-hero-actions">
-              <a className="btn btn-primary" href="#collection-books">Browse the collection</a>
-              <a className="btn btn-outline" href="/prebooking">Physical editions</a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CollectionHeroSlider collection={collection} slides={slides} />
 
       <section className="collection-intro">
         <div className="container collection-intro-inner">
@@ -98,3 +84,4 @@ export default function CollectionPage({ type, items = [] }) {
     </main>
   );
 }
+import CollectionHeroSlider from "./CollectionHeroSlider";

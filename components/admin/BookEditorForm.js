@@ -55,6 +55,7 @@ const DEFAULT_BOOK = {
   placeholderCopy: false,
   homeVisible: true,
   homeOrder: 0,
+  published: true,
 };
 
 const normalize = (b) => {
@@ -85,6 +86,10 @@ export default function BookEditorForm({ initialBook, isNew }) {
   const [expandedEpisode, setExpandedEpisode] = useState(null);
   const [reviewForm, setReviewForm] = useState(null);
   const [savingReview, setSavingReview] = useState(false);
+  const episodeOptions = episodes.map((ep, i) => ({
+    value: ep.slug,
+    label: `Episode ${String(i + 1).padStart(2, "0")}${ep.title ? ` · ${ep.title}` : ""}`,
+  }));
 
   const set = (patch) => setBook((b) => ({ ...b, ...patch }));
 
@@ -129,12 +134,13 @@ export default function BookEditorForm({ initialBook, isNew }) {
   };
 
   const startAddReview = () => {
-    setReviewForm({ id: null, name: "", rating: 5, text: "", when: "Just now" });
+    setReviewForm({ id: null, episodeSlug: "", name: "", rating: 5, text: "", when: "Just now" });
   };
 
   const startEditReview = (r) => {
     setReviewForm({
       id: r.id,
+      episodeSlug: r.episodeSlug || "",
       name: r.name || "",
       rating: r.rating || 5,
       text: r.text || "",
@@ -149,6 +155,7 @@ export default function BookEditorForm({ initialBook, isNew }) {
     try {
       const payload = {
         bookSlug: book.slug,
+        episodeSlug: reviewForm.episodeSlug || null,
         name: reviewForm.name,
         rating: Number(reviewForm.rating) || 5,
         text: reviewForm.text,
@@ -219,6 +226,12 @@ export default function BookEditorForm({ initialBook, isNew }) {
           <TextInput label="Badge" value={book.badge} placeholder="e.g. New / Complete" onChange={(e) => set({ badge: e.target.value })} />
           <TextInput label="CTA label" value={book.ctaLabel} placeholder="e.g. Read the Story" onChange={(e) => set({ ctaLabel: e.target.value })} />
         </div>
+        <Toggle
+          label="Published"
+          hint="Turn off to keep this title in draft for the author only."
+          checked={book.published}
+          onChange={(v) => set({ published: v })}
+        />
         <TextInput
           label="Tagline"
           value={book.tagline}
@@ -362,7 +375,7 @@ export default function BookEditorForm({ initialBook, isNew }) {
             onClick={() => {
               setEpisodes([
                 ...episodes,
-                { slug: "", title: "", urduTitle: "", teaserUr: "", synopsis: "", closingLineUr: "", pdf: "", readTime: "" },
+                { slug: "", title: "", urduTitle: "", teaserUr: "", synopsis: "", closingLineUr: "", pdf: "", readTime: "", published: true },
               ]);
               setExpandedEpisode(episodes.length);
             }}
@@ -376,7 +389,7 @@ export default function BookEditorForm({ initialBook, isNew }) {
             <button type="button" className="adm-episode-summary" aria-expanded={expandedEpisode === i} onClick={() => setExpandedEpisode(expandedEpisode === i ? null : i)}>
               <span className="adm-episode-number">{String(i + 1).padStart(2, "0")}</span>
               <span className="adm-episode-heading"><strong>{ep.title || `Episode ${i + 1}`}</strong><small>{ep.urduTitle || ep.slug || "No title yet"}</small></span>
-              <span className="adm-episode-kind">Episode details</span>
+              <span className={`adm-episode-status${ep.published === false ? "" : " is-complete"}`}>{ep.published === false ? "Draft" : "Published"}</span>
               <span className="adm-episode-chevron" aria-hidden="true">⌄</span>
             </button>
             <div className="adm-episode-body">
@@ -395,7 +408,12 @@ export default function BookEditorForm({ initialBook, isNew }) {
               <TextInput label="Read time" value={ep.readTime} onChange={(e) => setEpisode(i, { readTime: e.target.value })} />
             </div>
             <div className="adm-grid-2">
-              <TextInput label="Read time" value={ep.readTime} onChange={(e) => setEpisode(i, { readTime: e.target.value })} />
+              <Toggle
+                label="Published"
+                hint="Turn off to keep this episode in draft."
+                checked={ep.published !== false}
+                onChange={(v) => setEpisode(i, { published: v })}
+              />
               <FileField label="PDF" value={ep.pdf} placeholder="Upload episode PDF" onChange={(url) => setEpisode(i, { pdf: url })} />
             </div>
             <TextArea label="Teaser (Urdu)" rows={2} value={ep.teaserUr} onChange={(e) => setEpisode(i, { teaserUr: e.target.value })} dir="rtl" />
@@ -434,6 +452,17 @@ export default function BookEditorForm({ initialBook, isNew }) {
                 </select>
               </Field>
             </div>
+            {book.type === "episodic" && (
+              <Select
+                label="Review location"
+                value={reviewForm.episodeSlug || ""}
+                onChange={(e) => setReviewForm((f) => ({ ...f, episodeSlug: e.target.value }))}
+                options={[
+                  { value: "", label: "Whole novel" },
+                  ...episodeOptions,
+                ]}
+              />
+            )}
             <TextInput
               label="When (display)"
               value={reviewForm.when}
@@ -461,6 +490,7 @@ export default function BookEditorForm({ initialBook, isNew }) {
             <div className="adm-comment-head">
               <strong>{r.name}</strong>
               <span>{"★".repeat(r.rating)}</span>
+              {r.episodeSlug && <span className="adm-badge adm-badge-muted">{episodeOptions.find((ep) => ep.value === r.episodeSlug)?.label || r.episodeSlug}</span>}
               <span className="adm-comment-meta">{r.when}</span>
               <span className="adm-actions adm-actions-end">
                 <button className="adm-btn adm-btn-outline adm-btn-sm" type="button" onClick={() => startEditReview(r)}>

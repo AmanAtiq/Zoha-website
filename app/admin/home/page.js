@@ -15,6 +15,7 @@ import {
 
 const TABS = [
   { id: "hero", label: "Hero slider" },
+  { id: "pageSliders", label: "Page sliders" },
   { id: "featured", label: "Featured selections" },
   { id: "reviews", label: "Reviews" },
   { id: "quote", label: "Quote band" },
@@ -67,6 +68,7 @@ export default function AdminHomePage() {
   const episodicSlugs = settings?.episodicSlugs || [];
   const shortNovelSlugs = settings?.shortNovelSlugs || [];
   const afsanaSlugs = settings?.afsanaSlugs || [];
+  const collectionSliders = settings?.collectionSliders || {};
   const sortedHero = books
     .filter((b) => heroSlugs.includes(b.slug))
     .sort((a, b) => heroSlugs.indexOf(a.slug) - heroSlugs.indexOf(b.slug));
@@ -77,23 +79,16 @@ export default function AdminHomePage() {
   const visibleByType = (type) => books
     .filter((b) => b.type === type && b.homeVisible && !b.prebookOnly && !b.prebook_only)
     .sort((a, b) => (a.homeOrder || 0) - (b.homeOrder || 0));
-  const sectionLimit = { episodic: 1, "short-novel": 2, afsana: 3 };
-  const visibleTopByType = (type) => visibleByType(type).slice(0, sectionLimit[type]);
   const selectedEpisodic = settings && Object.prototype.hasOwnProperty.call(settings, "episodicSlugs")
-    ? selectedBySection(episodicSlugs, "episodic").slice(0, sectionLimit.episodic) : homeSections.episodic;
+    ? selectedBySection(episodicSlugs, "episodic") : homeSections.episodic;
   const selectedShortNovels = settings && Object.prototype.hasOwnProperty.call(settings, "shortNovelSlugs")
-    ? selectedBySection(shortNovelSlugs, "short-novel").slice(0, sectionLimit["short-novel"]) : homeSections.shortNovels;
+    ? selectedBySection(shortNovelSlugs, "short-novel") : homeSections.shortNovels;
   const selectedAfsanay = settings && Object.prototype.hasOwnProperty.call(settings, "afsanaSlugs")
-    ? selectedBySection(afsanaSlugs, "afsana").slice(0, sectionLimit.afsana) : homeSections.afsanay;
+    ? selectedBySection(afsanaSlugs, "afsana") : homeSections.afsanay;
   const libraryBySection = (selectedSlugs, type) => books.filter((b) => b.type === type && !selectedSlugs.includes(b.slug) && !b.prebookOnly && !b.prebook_only);
   const libraryEpisodic = libraryBySection(selectedEpisodic.map((b) => b.slug), "episodic");
   const libraryShortNovels = libraryBySection(selectedShortNovels.map((b) => b.slug), "short-novel");
   const libraryAfsanay = libraryBySection(selectedAfsanay.map((b) => b.slug), "afsana");
-  const sectionFull = {
-    episodicSlugs: selectedEpisodic.length >= sectionLimit.episodic,
-    shortNovelSlugs: selectedShortNovels.length >= sectionLimit["short-novel"],
-    afsanaSlugs: selectedAfsanay.length >= sectionLimit.afsana,
-  };
 
   const saveAll = async () => {
     setSaving(true); setError(""); setNotice("");
@@ -115,8 +110,6 @@ export default function AdminHomePage() {
   const addToSection = (key, slug) => setSettings((prev) => {
     const current = prev?.[key] || []; const type = sectionKeyToType[key];
     if (current.includes(slug)) return prev;
-    const validSelected = books.filter((b) => current.includes(b.slug) && b.type === type);
-    if (validSelected.length >= sectionLimit[type]) return prev;
     return { ...prev, [key]: [...current, slug] };
   });
   const removeFromSection = (key, slug) => setSettings((prev) => ({ ...prev, [key]: (prev?.[key] || []).filter((s) => s !== slug) }));
@@ -124,6 +117,27 @@ export default function AdminHomePage() {
     const next = [...(settings[key] || [])]; const j = index + dir;
     if (j < 0 || j >= next.length) return;
     [next[index], next[j]] = [next[j], next[index]]; set({ [key]: next });
+  };
+  const sliderSlugsFor = (type) => collectionSliders[type] || [];
+  const sliderSelected = (type) => selectedBySection(sliderSlugsFor(type), type);
+  const sliderLibrary = (type) => libraryBySection(sliderSelected(type).map((b) => b.slug), type);
+  const setSliderSlugs = (type, slugs) => set({
+    collectionSliders: {
+      ...collectionSliders,
+      [type]: slugs,
+    },
+  });
+  const addToSlider = (type, slug) => {
+    const current = sliderSlugsFor(type);
+    if (current.includes(slug)) return;
+    setSliderSlugs(type, [...current, slug]);
+  };
+  const removeFromSlider = (type, slug) => setSliderSlugs(type, sliderSlugsFor(type).filter((s) => s !== slug));
+  const moveSlider = (type, index, dir) => {
+    const next = [...sliderSlugsFor(type)]; const j = index + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[index], next[j]] = [next[j], next[index]];
+    setSliderSlugs(type, next);
   };
   const saveTestimonial = async (t) => {
     setSavingTestimonial(t.id);
@@ -201,7 +215,7 @@ export default function AdminHomePage() {
   }
 
   const authorIntro = settings.authorIntro || {};
-  const renderSection = (key, title, description, selected, library, type) => (
+  const renderSection = (key, title, description, selected, library) => (
     <section className="adm-home-section" key={key}>
       <div className="adm-section-title">{title}</div>
       <p className="adm-card-hint">{description}</p>
@@ -225,12 +239,44 @@ export default function AdminHomePage() {
       {library.map((book) => (
         <div className="adm-row-between adm-library-row" key={book.slug}>
           <span>{book.title} <span className="adm-comment-meta">· {book.type_label}</span></span>
-          <button className="adm-btn adm-btn-outline adm-btn-sm" disabled={sectionFull[key]} onClick={() => addToSection(key, book.slug)}>Add</button>
+          <button className="adm-btn adm-btn-outline adm-btn-sm" onClick={() => addToSection(key, book.slug)}>Add</button>
         </div>
       ))}
-      {sectionFull[key] && <div className="adm-field-hint adm-limit-note">Maximum {sectionLimit[type]} selected.</div>}
     </section>
   );
+  const renderSliderSection = (type, title, description) => {
+    const selected = sliderSelected(type);
+    const library = sliderLibrary(type);
+    return (
+      <section className="adm-home-section" key={type}>
+        <div className="adm-section-title">{title}</div>
+        <p className="adm-card-hint">{description}</p>
+        {selected.length === 0 && <div className="adm-empty adm-section-empty">No slides selected. The public page will use its collection order.</div>}
+        {selected.map((book, i) => (
+          <div className="adm-comment adm-selection-row" key={book.slug}>
+            <div className="adm-row-between">
+              <div className="adm-media-row">
+                {book.cover && <img className="adm-thumb" src={book.cover} alt="" />}
+                <div><strong>{book.title}</strong><div className="adm-comment-meta">{book.type_label} · slide {i + 1}</div></div>
+              </div>
+              <div className="adm-actions">
+                <button className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === 0} onClick={() => moveSlider(type, i, -1)}>↑</button>
+                <button className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === selected.length - 1} onClick={() => moveSlider(type, i, 1)}>↓</button>
+                <button className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => removeFromSlider(type, book.slug)}>Remove</button>
+              </div>
+            </div>
+          </div>
+        ))}
+        {library.length > 0 && <div className="adm-library-label">Available to add</div>}
+        {library.map((book) => (
+          <div className="adm-row-between adm-library-row" key={book.slug}>
+            <span>{book.title} <span className="adm-comment-meta">· {book.type_label}</span></span>
+            <button className="adm-btn adm-btn-outline adm-btn-sm" onClick={() => addToSlider(type, book.slug)}>Add slide</button>
+          </div>
+        ))}
+      </section>
+    );
+  };
 
   return (
     <div className="adm-home-editor">
@@ -258,11 +304,13 @@ export default function AdminHomePage() {
           <div className="adm-card"><div className="adm-card-head"><h2>Slide settings</h2><p>Applies to the hero as a whole, not to individual slides.</p></div><div className="adm-card-body adm-grid-2"><TextInput label="Hero lede (optional subtitle)" value={settings.heroLede} onChange={(e) => set({ heroLede: e.target.value })} /><TextInput label="Slide duration (ms)" type="number" value={settings.heroAutoplayMs} onChange={(e) => set({ heroAutoplayMs: Number(e.target.value) })} hint="Time each slide stays on screen before advancing." /></div></div>
         </div>}
 
-        {activeTab === "featured" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Featured on the homepage</h2><p>Choose the books shown in each dedicated shelf further down the page.</p></div><div className="adm-card-body">{renderSection("episodicSlugs", "Featured episodic novel", "Only one episodic novel appears at a time.", selectedEpisodic, libraryEpisodic, "episodic")}{renderSection("shortNovelSlugs", "Featured short novels", "Only two short novels appear on the homepage.", selectedShortNovels, libraryShortNovels, "short-novel")}{renderSection("afsanaSlugs", "Featured afsanay", "Only three afsanay appear on the homepage.", selectedAfsanay, libraryAfsanay, "afsana")}</div></div></div>}
+        {activeTab === "pageSliders" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Collection page sliders</h2><p>Choose and order the hero slides for each reading collection page.</p></div><div className="adm-card-body">{renderSliderSection("episodic", "Episodic novels page", "Slides on /episodic-novels.")}{renderSliderSection("short-novel", "Short novels page", "Slides on /short-novels.")}{renderSliderSection("afsana", "Afsanay page", "Slides on /afsanay.")}</div></div></div>}
+
+        {activeTab === "featured" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Featured on the homepage</h2><p>Choose the books shown in each dedicated shelf further down the page. Add as many as you need.</p></div><div className="adm-card-body">{renderSection("episodicSlugs", "Featured episodic novels", "All selected episodic novels appear in this order.", selectedEpisodic, libraryEpisodic)}{renderSection("shortNovelSlugs", "Featured short novels", "All selected short novels appear in this order.", selectedShortNovels, libraryShortNovels)}{renderSection("afsanaSlugs", "Featured afsanay", "All selected afsanay appear in this order.", selectedAfsanay, libraryAfsanay)}</div></div></div>}
 
         {activeTab === "reviews" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Reviews shown</h2><p>These are the quote-slider entries on the homepage.</p></div><div className="adm-card-body">{testimonials.map((t) => <div className="adm-kv-editor" key={t.id}><div className="adm-row-between adm-testimonial-header"><Toggle label="Visible on homepage" checked={t.active} onChange={(v) => updateTestimonial(t.id, { active: v })} /><div className="adm-actions"><button className="adm-btn adm-btn-primary adm-btn-sm" disabled={savingTestimonial === t.id} onClick={() => saveTestimonial(t)}>Save</button><button className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => deleteTestimonial(t.id)}>Delete</button></div></div><TextArea label="Quote" rows={3} value={t.quote} onChange={(e) => updateTestimonial(t.id, { quote: e.target.value })} /><div className="adm-grid-2"><TextInput label="Source" value={t.source} placeholder="e.g. Reader, Instagram" onChange={(e) => updateTestimonial(t.id, { source: e.target.value })} /><TextInput label="Order" type="number" value={t.sortOrder} onChange={(e) => updateTestimonial(t.id, { sortOrder: Number(e.target.value) })} /></div></div>)}<button className="adm-btn adm-btn-outline adm-btn-sm" onClick={addTestimonial}>+ Add review</button></div></div></div>}
 
-        {activeTab === "quote" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Quote band</h2><p>Slidable quotes between homepage sections. Each slide supports Urdu and English — same fonts as the novel detail quote.</p></div><div className="adm-card-body">{(settings.quotes || []).map((q, i) => <div className="adm-kv-editor" key={i}><div className="adm-row-between adm-testimonial-header"><strong>Quote {i + 1}</strong><div className="adm-actions"><button type="button" className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === 0} onClick={() => { const next = [...settings.quotes]; [next[i - 1], next[i]] = [next[i], next[i - 1]]; set({ quotes: next }); }}>↑</button><button type="button" className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === settings.quotes.length - 1} onClick={() => { const next = [...settings.quotes]; [next[i], next[i + 1]] = [next[i + 1], next[i]]; set({ quotes: next }); }}>↓</button><button type="button" className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => set({ quotes: settings.quotes.filter((_, idx) => idx !== i) })}>Remove</button></div></div><TextArea label="Quote (Urdu)" rows={3} value={q.ur || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, ur: e.target.value } : item); set({ quotes: next }); }} dir="rtl" /><TextArea label="Quote (English)" rows={2} value={q.en || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, en: e.target.value } : item); set({ quotes: next }); }} /><TextInput label="Attribution" value={q.cite || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, cite: e.target.value } : item); set({ quotes: next }); }} /><div className="adm-quote-preview">{q.ur && <p className="adm-quote-preview-ur" lang="ur" dir="rtl">{q.ur}</p>}{q.en && <p>{q.en}</p>}<span>{q.cite || "— Zoha Asif"}</span></div></div>)}<button type="button" className="adm-btn adm-btn-outline adm-btn-sm" onClick={() => set({ quotes: [...(settings.quotes || []), { ur: "", en: "", cite: "— Zoha Asif" }] })}>+ Add quote</button></div></div></div>}
+        {activeTab === "quote" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>Quote band</h2><p>Slidable quotes between homepage sections. Each slide supports Urdu and English — same fonts as the novel detail quote.</p></div><div className="adm-card-body">{(settings.quotes || []).map((q, i) => <div className="adm-kv-editor" key={i}><div className="adm-row-between adm-testimonial-header"><Toggle label="Visible on homepage" checked={q.active !== false} onChange={(v) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, active: v } : item); set({ quotes: next }); }} /><div className="adm-actions"><button type="button" className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === 0} onClick={() => { const next = [...settings.quotes]; [next[i - 1], next[i]] = [next[i], next[i - 1]]; set({ quotes: next }); }}>↑</button><button type="button" className="adm-btn adm-btn-ghost adm-btn-sm" disabled={i === settings.quotes.length - 1} onClick={() => { const next = [...settings.quotes]; [next[i], next[i + 1]] = [next[i + 1], next[i]]; set({ quotes: next }); }}>↓</button><button type="button" className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => set({ quotes: settings.quotes.filter((_, idx) => idx !== i) })}>Remove</button></div></div><TextArea label="Quote (Urdu)" rows={3} value={q.ur || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, ur: e.target.value } : item); set({ quotes: next }); }} dir="rtl" /><TextArea label="Quote (English)" rows={2} value={q.en || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, en: e.target.value } : item); set({ quotes: next }); }} /><TextInput label="Attribution" value={q.cite || ""} onChange={(e) => { const next = settings.quotes.map((item, idx) => idx === i ? { ...item, cite: e.target.value } : item); set({ quotes: next }); }} /><div className="adm-quote-preview">{q.ur && <p className="adm-quote-preview-ur" lang="ur" dir="rtl">{q.ur}</p>}{q.en && <p>{q.en}</p>}<span>{q.cite || "— Zoha Asif"}</span></div></div>)}<button type="button" className="adm-btn adm-btn-outline adm-btn-sm" onClick={() => set({ quotes: [...(settings.quotes || []), { ur: "", en: "", cite: "— Zoha Asif", active: true }] })}>+ Add quote</button></div></div></div>}
 
         {activeTab === "about" && <div className="adm-home-panel"><div className="adm-card"><div className="adm-card-head"><h2>About the author</h2><p>The text and portrait shown in the homepage author section.</p></div><div className="adm-card-body"><ImageField label="Portrait" value={authorIntro.portrait} onChange={(url) => set({ authorIntro: { ...authorIntro, portrait: url } })} wide /><TextArea label="Mission (Urdu)" rows={2} value={authorIntro.missionUr} onChange={(e) => set({ authorIntro: { ...authorIntro, missionUr: e.target.value } })} dir="rtl" /><TextArea label="Mission (English)" rows={2} value={authorIntro.mission} onChange={(e) => set({ authorIntro: { ...authorIntro, mission: e.target.value } })} /><TextArea label="Poem (Urdu)" rows={5} value={authorIntro.poem} onChange={(e) => set({ authorIntro: { ...authorIntro, poem: e.target.value } })} dir="rtl" /><TextArea label="Biography" rows={6} value={authorIntro.bio} onChange={(e) => set({ authorIntro: { ...authorIntro, bio: e.target.value } })} /></div></div></div>}
 

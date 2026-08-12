@@ -6,20 +6,14 @@ function hasUrdu(text) {
   return /[\u0600-\u06FF]/.test(String(text || ""));
 }
 
-function QuoteLines({ text, withQuotes }) {
+function QuoteLines({ text }) {
   const lines = String(text || "").split("\n");
-  const body = lines.map((line, i) => (
+  return lines.map((line, i) => (
     <span key={i}>
       {line}
       {i < lines.length - 1 && <br />}
     </span>
   ));
-  if (!withQuotes) return body;
-  return (
-    <>
-      &ldquo;{body}&rdquo;
-    </>
-  );
 }
 
 function QuoteSlide({ quote }) {
@@ -40,12 +34,12 @@ function QuoteSlide({ quote }) {
     <>
       {ur && (
         <p className="quote-ur" lang="ur" dir="rtl">
-          <QuoteLines text={ur} withQuotes />
+          <QuoteLines text={ur} />
         </p>
       )}
       {en && (
         <p className={ur ? "quote-en" : "quote-en quote-en--solo"}>
-          <QuoteLines text={en} withQuotes={!ur} />
+          <QuoteLines text={en} />
         </p>
       )}
       <cite>{quote.cite || "— Zoha Asif"}</cite>
@@ -56,7 +50,7 @@ function QuoteSlide({ quote }) {
 export default function Quote({ quotes = [], text, cite }) {
   const items =
     quotes?.length > 0
-      ? quotes
+      ? quotes.filter((quote) => quote.active !== false)
       : [
           {
             text: text || "Their pain matters, their story matters —\nand they are never alone.",
@@ -82,6 +76,8 @@ export default function Quote({ quotes = [], text, cite }) {
   useEffect(() => {
     setActive(0);
   }, [items.length]);
+
+  if (!items.length) return null;
 
   return (
     <section

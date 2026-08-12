@@ -8,6 +8,7 @@ import { Alert, TextInput, TextArea, Select, Field } from "../../../components/a
 const emptyForm = () => ({
   id: null,
   bookSlug: "",
+  episodeSlug: "",
   name: "",
   rating: 5,
   text: "",
@@ -74,6 +75,7 @@ export default function AdminCommentsPage() {
     setForm({
       id: r.id,
       bookSlug: r.bookSlug || "",
+      episodeSlug: r.episodeSlug || "",
       name: r.name || "",
       rating: r.rating || 5,
       text: r.text || "",
@@ -89,6 +91,7 @@ export default function AdminCommentsPage() {
     try {
       const payload = {
         bookSlug: form.bookSlug,
+        episodeSlug: form.episodeSlug || null,
         name: form.name,
         rating: Number(form.rating) || 5,
         text: form.text,
@@ -100,8 +103,11 @@ export default function AdminCommentsPage() {
           body: JSON.stringify(payload),
         });
         const bookTitle = bookOptions.find((b) => b.slug === review.bookSlug)?.title || "";
+        const episodeTitle = bookOptions
+          .find((b) => b.slug === review.bookSlug)
+          ?.episodes?.find((ep) => ep.slug === review.episodeSlug)?.title || "";
         setReviews((prev) =>
-          prev.map((r) => (r.id === review.id ? { ...review, bookTitle: bookTitle || r.bookTitle } : r))
+          prev.map((r) => (r.id === review.id ? { ...review, bookTitle: bookTitle || r.bookTitle, episodeTitle } : r))
         );
         setNotice("Comment updated.");
       } else {
@@ -110,7 +116,10 @@ export default function AdminCommentsPage() {
           body: JSON.stringify(payload),
         });
         const bookTitle = bookOptions.find((b) => b.slug === review.bookSlug)?.title || "";
-        setReviews((prev) => [{ ...review, bookTitle }, ...prev]);
+        const episodeTitle = bookOptions
+          .find((b) => b.slug === review.bookSlug)
+          ?.episodes?.find((ep) => ep.slug === review.episodeSlug)?.title || "";
+        setReviews((prev) => [{ ...review, bookTitle, episodeTitle }, ...prev]);
         setNotice("Comment added.");
       }
       setForm(null);
@@ -122,6 +131,8 @@ export default function AdminCommentsPage() {
   };
 
   const filtered = reviews.filter((r) => (bookFilter ? r.bookSlug === bookFilter : true));
+  const selectedBook = bookOptions.find((book) => book.slug === form?.bookSlug);
+  const episodeOptions = selectedBook?.episodes || [];
 
   return (
     <>
@@ -151,7 +162,7 @@ export default function AdminCommentsPage() {
               <Select
                 label="Book"
                 value={form.bookSlug}
-                onChange={(e) => setForm((f) => ({ ...f, bookSlug: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, bookSlug: e.target.value, episodeSlug: "" }))}
                 options={bookOptions.map((b) => ({ value: b.slug, label: b.title }))}
               />
               <TextInput
@@ -180,6 +191,20 @@ export default function AdminCommentsPage() {
                 placeholder="e.g. 2 days ago"
               />
             </div>
+            {episodeOptions.length > 0 && (
+              <Select
+                label="Review location"
+                value={form.episodeSlug || ""}
+                onChange={(e) => setForm((f) => ({ ...f, episodeSlug: e.target.value }))}
+                options={[
+                  { value: "", label: "Whole novel" },
+                  ...episodeOptions.map((ep) => ({
+                    value: ep.slug,
+                    label: `Episode ${String(ep.episodeNumber || "").padStart(2, "0")} · ${ep.title}`,
+                  })),
+                ]}
+              />
+            )}
             <TextArea
               label="Comment"
               rows={4}
@@ -221,6 +246,7 @@ export default function AdminCommentsPage() {
                     <strong>{r.name}</strong>
                     <span>{"★".repeat(r.rating)}</span>
                     {r.bookTitle && <span className="adm-badge">{r.bookTitle}</span>}
+                    {r.episodeSlug && <span className="adm-badge adm-badge-muted">{r.episodeTitle || r.episodeSlug}</span>}
                     <span className="adm-comment-meta">{r.when}</span>
                     <span className="adm-actions adm-actions-end">
                       <button className="adm-btn adm-btn-outline adm-btn-sm" type="button" onClick={() => startEdit(r)}>

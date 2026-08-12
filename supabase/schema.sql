@@ -41,6 +41,7 @@ create table if not exists public.books (
   home_visible boolean default true,
   home_order integer default 0,
   prebook_only boolean default false,
+  published boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -59,6 +60,7 @@ create table if not exists public.episodes (
   pdf text default '',
   read_time text default '',
   completed boolean default false,
+  published boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   unique (book_slug, slug)
@@ -101,6 +103,7 @@ create table if not exists public.home_settings (
   quote_text text default '',
   quote_cite text default '',
   quotes jsonb default '[]',
+  collection_sliders jsonb default '{}',
   author_intro jsonb default '{}',
   faqs jsonb default '[]',
   updated_at timestamptz default now()
@@ -116,6 +119,15 @@ alter table public.home_settings
 -- Books that only appear in the prebooking store (not in reading collections)
 alter table public.books
   add column if not exists prebook_only boolean default false;
+
+alter table public.books
+  add column if not exists published boolean default true;
+
+alter table public.episodes
+  add column if not exists published boolean default true;
+
+alter table public.home_settings
+  add column if not exists collection_sliders jsonb default '{}';
 
 -- ---------- Prebooking ----------
 create table if not exists public.prebooking (
@@ -145,19 +157,27 @@ alter table public.prebooking enable row level security;
 alter table public.admin_sessions enable row level security;
 
 -- Public read
+drop policy if exists "public read books" on public.books;
 create policy "public read books" on public.books for select using (true);
+drop policy if exists "public read episodes" on public.episodes;
 create policy "public read episodes" on public.episodes for select using (true);
+drop policy if exists "public read reviews" on public.reviews;
 create policy "public read reviews" on public.reviews for select using (true);
+drop policy if exists "public read testimonials" on public.testimonials;
 create policy "public read testimonials" on public.testimonials for select using (active = true);
+drop policy if exists "public read home settings" on public.home_settings;
 create policy "public read home settings" on public.home_settings for select using (true);
+drop policy if exists "public read prebooking" on public.prebooking;
 create policy "public read prebooking" on public.prebooking for select using (true);
 
 -- Public: submit a review. The `approved` column is no longer used as a
 -- moderation gate (the site shows every comment), so reads allow all rows and
 -- inserts are always stored as unapproved.
+drop policy if exists "public submit review" on public.reviews;
 create policy "public submit review" on public.reviews for insert with check (approved = false);
 
 -- Admin sessions are only touched by the server (service role bypasses RLS)
+drop policy if exists "no anon sessions" on public.admin_sessions;
 create policy "no anon sessions" on public.admin_sessions for all using (false) with check (false);
 
 -- ---------- updated_at trigger ----------
@@ -187,6 +207,7 @@ create trigger home_settings_updated_at before update on public.home_settings
 -- ---------- Indexes ----------
 create index if not exists books_type_idx on public.books (type);
 create index if not exists books_home_idx on public.books (home_visible, home_order);
+create index if not exists books_published_idx on public.books (published);
 create index if not exists episodes_book_idx on public.episodes (book_slug, episode_number);
 create index if not exists reviews_book_idx on public.reviews (book_slug);
 create index if not exists reviews_approved_idx on public.reviews (approved);
@@ -197,6 +218,7 @@ values ('assets', 'assets', true)
 on conflict (id) do nothing;
 
 -- Public read of assets
+drop policy if exists "public read assets" on storage.objects;
 create policy "public read assets" on storage.objects
   for select using (bucket_id = 'assets');
 

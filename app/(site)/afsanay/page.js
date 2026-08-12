@@ -1,5 +1,5 @@
 import CollectionPage from "../../../components/CollectionPage";
-import { getCatalogBooks } from "../../../lib/data";
+import { getCollection } from "../../../lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +9,6 @@ export const metadata = {
 };
 
 export default async function AfsanayPage() {
-  const books = await getCatalogBooks();
-  return <CollectionPage type="afsana" items={books.filter((b) => b.type === "afsana")} />;
+  const { items, heroSlides } = await getCollection("afsana");
+  return <CollectionPage type="afsana" items={items} heroSlides={heroSlides} />;
 }

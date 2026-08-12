@@ -47,6 +47,7 @@ export async function GET() {
     episodeCount: epCounts[b.slug] || 0,
     reviewCount: revCounts[b.slug] || 0,
     prebookOnly: !!b.prebook_only,
+    published: b.published ?? true,
     inDb: true,
   })).filter((b) => !b.prebookOnly);
 
@@ -79,6 +80,10 @@ export async function POST(request) {
   let insert = await admin.from("books").insert(row).select().single();
   if (insert.error && /prebook_only/i.test(insert.error.message)) {
     const { prebook_only: _drop, ...without } = row;
+    insert = await admin.from("books").insert(without).select().single();
+  }
+  if (insert.error && /published/i.test(insert.error.message)) {
+    const { published: _drop, ...without } = row;
     insert = await admin.from("books").insert(without).select().single();
   }
   if (insert.error) {

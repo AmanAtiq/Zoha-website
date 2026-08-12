@@ -36,7 +36,7 @@ export default function PrebookingDetail({ book, edition }) {
               <img className="prebooking-detail-cover" src={book.cover} alt={`${book.title} physical edition`} />
             </div>
             <div className="prebooking-detail-copy">
-              <p className="eyebrow eyebrow--dark">{book.typeLabel} · Physical first print</p>
+              <p className="eyebrow eyebrow--dark">Physical first print</p>
               <h1>{book.title}</h1>
               <p className="prebooking-detail-urdu" lang="ur" dir="rtl">{book.titleUrdu}</p>
               <p className="prebooking-detail-pitch">{edition.pitch}</p>

@@ -1,5 +1,5 @@
 import CollectionPage from "../../../components/CollectionPage";
-import { getCatalogBooks } from "../../../lib/data";
+import { getCollection } from "../../../lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +9,6 @@ export const metadata = {
 };
 
 export default async function EpisodicNovelsPage() {
-  const books = await getCatalogBooks();
-  return <CollectionPage type="episodic" items={books.filter((b) => b.type === "episodic")} />;
+  const { items, heroSlides } = await getCollection("episodic");
+  return <CollectionPage type="episodic" items={items} heroSlides={heroSlides} />;
 }

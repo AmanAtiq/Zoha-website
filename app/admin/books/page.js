@@ -53,6 +53,23 @@ export default function AdminBooksPage() {
     }
   };
 
+  const togglePublished = async (book) => {
+    setBusyId(book.slug);
+    try {
+      await api(`/api/admin/books/${book.slug}`, {
+        method: "PATCH",
+        body: JSON.stringify({ published: !(book.published ?? true) }),
+      });
+      setBooks((prev) =>
+        prev.map((b) => (b.slug === book.slug ? { ...b, published: !(b.published ?? true) } : b))
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const removeBook = async (book) => {
     if (!window.confirm(`Delete "${book.title}"? This also removes its episodes, reviews and prebooking.`)) return;
     try {
@@ -110,6 +127,7 @@ export default function AdminBooksPage() {
                     <th>Type</th>
                     <th>Episodes</th>
                     <th>Reviews</th>
+                    <th>Published</th>
                     <th>On homepage</th>
                     <th></th>
                   </tr>
@@ -130,6 +148,16 @@ export default function AdminBooksPage() {
                       <td>{book.episodeCount}</td>
                       <td>
                         {book.reviewCount}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={book.published ?? true}
+                          className={`adm-toggle${book.published ?? true ? " is-on" : ""}`}
+                          disabled={busyId === book.slug}
+                          onClick={() => togglePublished(book)}
+                        />
                       </td>
                       <td>
                         <button

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "../../../../../lib/admin-auth";
 import { getAdminClient } from "../../../../../lib/supabase-server";
-import { bookToRow, episodeToRow, rowToBook } from "../../../../../lib/serialize";
+import { bookToRow, episodeToRow, rowToBook, rowToReview } from "../../../../../lib/serialize";
 import { getSeedBookForAdmin } from "../../../../../lib/data";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +34,7 @@ export async function GET(_request, { params }) {
   ]);
 
   const book = rowToBook(row, epRes.data || [], revRes.data || []);
+  book.reviews = (revRes.data || []).map(rowToReview);
   return NextResponse.json({ book });
 }
 
@@ -58,6 +59,10 @@ export async function PUT(request, { params }) {
   let { error } = await admin.from("books").upsert(row, { onConflict: "slug" });
   if (error && /prebook_only/i.test(error.message)) {
     const { prebook_only: _drop, ...without } = row;
+    ({ error } = await admin.from("books").upsert(without, { onConflict: "slug" }));
+  }
+  if (error && /published/i.test(error.message)) {
+    const { published: _drop, ...without } = row;
     ({ error } = await admin.from("books").upsert(without, { onConflict: "slug" }));
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -88,6 +93,7 @@ export async function PATCH(request, { params }) {
   const patch = {};
   if (typeof body.homeVisible === "boolean") patch.home_visible = body.homeVisible;
   if (typeof body.homeOrder === "number") patch.home_order = body.homeOrder;
+  if (typeof body.published === "boolean") patch.published = body.published;
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });

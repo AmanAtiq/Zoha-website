@@ -25,6 +25,7 @@ export async function PATCH(request, { params }) {
   if (body.rating !== undefined) patch.rating = Math.min(5, Math.max(1, Number(body.rating) || 5));
   if (body.when !== undefined) patch.when_display = String(body.when || "").trim();
   if (body.bookSlug !== undefined) patch.book_slug = String(body.bookSlug || "");
+  if (body.episodeSlug !== undefined) patch.episode_slug = body.episodeSlug ? String(body.episodeSlug) : null;
 
   // Allow clients that send `when` via POST-style field name on create path reuse.
   if (body.whenDisplay !== undefined) patch.when_display = String(body.whenDisplay || "").trim();
