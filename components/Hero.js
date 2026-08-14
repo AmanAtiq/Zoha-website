@@ -34,6 +34,11 @@ export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
             aria-hidden={i !== active}
           >
             <div
+              className="slide-bg-blur"
+              style={{ backgroundImage: `url(${book.hero})` }}
+              aria-hidden="true"
+            />
+            <div
               className="slide-bg"
               style={{ backgroundImage: `url(${book.hero})` }}
             />

@@ -1,7 +1,6 @@
 import StarRating from "./StarRating";
 import ReviewSection from "./ReviewSection";
 import MoreFromAuthor from "./MoreFromAuthor";
-import PdfReader from "./PdfReader";
 import ShareButton from "./ShareButton";
 
 export default function StandaloneDetail({ book }) {
@@ -59,9 +58,13 @@ export default function StandaloneDetail({ book }) {
             </p>
 
             <div className="book-detail-actions">
-              <PdfReader pdf={book.pdf} fileLabel={`${book.slug}.pdf`} />
-              <a href={book.pdf} download className="btn btn-outline-dark">
-                Download PDF
+              <a
+                href={book.pdf}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-primary"
+              >
+                Read / Download PDF
               </a>
               <ShareButton title={book.title} text={book.tagline} />
             </div>

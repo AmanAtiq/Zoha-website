@@ -30,6 +30,15 @@ export default function CollectionHeroSlider({ collection, slides = [] }) {
     <section className="collection-hero">
       {slides.map((book, index) => (
         <img
+          key={`${book.slug}-blur`}
+          className={`collection-hero-image-blur${index === active ? " is-active" : ""}`}
+          src={book.hero || book.cover}
+          alt=""
+          aria-hidden="true"
+        />
+      ))}
+      {slides.map((book, index) => (
+        <img
           key={book.slug}
           className={`collection-hero-image${index === active ? " is-active" : ""}`}
           src={book.hero || book.cover}

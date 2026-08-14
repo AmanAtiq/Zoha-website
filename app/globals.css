@@ -254,6 +254,15 @@ h1, h2, h3, h4 {
 }
 .slide.is-active { opacity: 1; visibility: visible; z-index: 2; }
 
+.slide-bg-blur {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.55);
+  transform: scale(1.15);
+  display: none;
+}
 .slide-bg {
   position: absolute;
   inset: 0;
@@ -331,9 +340,13 @@ h1, h2, h3, h4 {
 }
 .slider-dots button.is-active { background: var(--white); width: 26px; border-radius: 999px; }
 
+@media (max-width: 1100px) {
+  .slide-bg-blur { display: block; }
+  .slide-bg { background-size: contain; background-repeat: no-repeat; background-position: center; }
+}
+
 @media (max-width: 700px) {
   .hero { height: 78vh; min-height: 520px; max-height: 680px; }
-  .slide-bg { background-position: 15% center; }
   .slide-content { padding-bottom: 96px; max-width: 92%; }
   .slide-overlay { background: linear-gradient(180deg, rgba(20,10,12,0.4) 0%, rgba(20,10,12,0.5) 45%, rgba(20,10,12,0.9) 100%); }
   .slide-title {
@@ -461,11 +474,13 @@ h1, h2, h3, h4 {
 .afsana-body h3 { font-size: 1.25rem; margin-bottom: 4px; }
 .afsana-body p { color: var(--ink-soft); font-size: 0.92rem; max-width: 56ch; }
 
-@media (max-width: 640px) {
-  .afsana-item { grid-template-columns: 32px 58px minmax(0, 1fr); gap: 12px; padding: 16px; }
-  .afsana-cover { width: 58px; }
-  .afsana-body p { overflow-wrap: anywhere; }
-  .afsana-item .link-arrow { grid-column: 2 / -1; }
+@media (max-width: 760px) {
+  .afsana-item { grid-template-columns: 1fr; gap: 0; padding: 0; overflow: hidden; }
+  .afsana-index { margin: 16px 16px 0; }
+  .afsana-cover { width: 100%; max-width: 220px; margin: 32px auto 0; }
+  .afsana-body { padding: 24px 28px 20px; text-align: center; }
+  .afsana-body p { margin-left: auto; margin-right: auto; overflow-wrap: anywhere; }
+  .afsana-item .link-arrow { grid-column: auto; justify-self: center; margin-bottom: 36px; }
 }
 
 /* ---------- Author intro ---------- */
@@ -660,6 +675,8 @@ h1, h2, h3, h4 {
 /* ---------- Collection landing pages ---------- */
 .collection-page { padding-top: 84px; }
 .collection-hero { position: relative; height: 620px; overflow: hidden; background: var(--charcoal-dark); }
+.collection-hero-image-blur { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0; filter: blur(30px) brightness(0.55); transform: scale(1.15); transition: opacity 0.7s ease; display: none; }
+.collection-hero-image-blur.is-active { opacity: 1; }
 .collection-hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; opacity: 0; transition: opacity 0.7s ease; }
 .collection-hero-image.is-active { opacity: 1; }
 .collection-hero-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,10,12,0.78) 0%, rgba(20,10,12,0.42) 48%, rgba(20,10,12,0.08) 76%); }
@@ -703,15 +720,18 @@ h1, h2, h3, h4 {
 .collection-cta-inner p:not(.eyebrow) { color: var(--rose-light); }
 .collection-cta-inner .eyebrow { color: var(--rose-light); }
 
+@media (max-width: 1100px) {
+  .collection-hero-image-blur { display: block; }
+  .collection-hero-image { object-fit: contain; object-position: center; background: var(--charcoal-dark); }
+}
+
 @media (max-width: 900px) {
-  .collection-hero-image { object-position: 62% center; }
   .collection-intro-inner { grid-template-columns: 140px minmax(0, 1fr); }
   .collection-count { grid-column: 2; }
 }
 
 @media (max-width: 700px) {
   .collection-hero { height: 78vh; min-height: 520px; max-height: 680px; }
-  .collection-hero-image { object-position: 20% center; }
   .collection-hero-overlay { background: linear-gradient(180deg, rgba(20,10,12,0.36) 0%, rgba(20,10,12,0.52) 44%, rgba(20,10,12,0.92) 100%); }
   .collection-hero-inner { padding-bottom: 92px; }
   .collection-hero-copy h1 { font-size: 2.2rem; line-height: 0.98; }

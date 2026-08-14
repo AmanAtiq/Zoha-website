@@ -1,6 +1,5 @@
 import StarRating from "./StarRating";
 import ReviewSection from "./ReviewSection";
-import PdfReader from "./PdfReader";
 import ShareButton from "./ShareButton";
 
 export default function EpisodePage({ book, episode, index }) {
@@ -70,9 +69,13 @@ export default function EpisodePage({ book, episode, index }) {
             )}
 
             <div className="book-detail-actions">
-              <PdfReader pdf={episode.pdf} fileLabel={`${book.slug}-${episode.slug}.pdf`} />
-              <a href={episode.pdf} download className="btn btn-outline-dark">
-                Download PDF
+              <a
+                href={episode.pdf}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-primary"
+              >
+                Read / Download PDF
               </a>
               <ShareButton title={`${book.title} — ${episode.title}`} text={episode.synopsis} />
             </div>
