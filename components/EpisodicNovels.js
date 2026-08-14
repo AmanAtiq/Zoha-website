@@ -24,7 +24,7 @@ export default function EpisodicNovels({ items = [] }) {
               </span>
               <p>{book.tagline}</p>
               <a href={`/novels/${book.slug}`} className="btn btn-primary">
-                {book.ctaLabel}
+                Read / Download PDF
               </a>
             </div>
           </article>

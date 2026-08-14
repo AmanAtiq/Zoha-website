@@ -44,11 +44,10 @@ export default function CollectionHeroSlider({ collection, slides = [] }) {
           <h1>{collection.title}</h1>
           <p>{collection.description}</p>
           <div className="collection-hero-actions">
-            {activeSlide && <a className="btn btn-primary" href={`/novels/${activeSlide.slug}`}>Start Reading</a>}
+            {activeSlide && <a className="btn btn-primary" href={`/novels/${activeSlide.slug}`}>Read / Download PDF</a>}
             <a className="btn btn-outline" href="#collection-books">Browse the collection</a>
           </div>
         </div>
-        {activeSlide && <span className="collection-hero-current">{activeSlide.title}</span>}
       </div>
       {slides.length > 1 && (
         <div className="collection-hero-dots" role="tablist" aria-label={`${collection.title} slides`}>

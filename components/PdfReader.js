@@ -8,7 +8,7 @@ export default function PdfReader({ pdf, fileLabel = "coming-soon.pdf" }) {
   return (
     <div className="reader-toggle-wrap">
       <button type="button" className="btn btn-primary" onClick={() => setOpen((v) => !v)}>
-        {open ? "Close Reader" : "Read Online"}
+        {open ? "Close PDF" : "Read PDF"}
       </button>
       {open && (
         <div className="pdf-reader">

@@ -44,7 +44,7 @@ export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
               <h1 className="slide-title">{book.title}</h1>
               <div className="slide-actions">
                 <a href={`/novels/${book.slug}`} className="btn btn-primary">
-                  {book.ctaLabel}
+                  Read / Download PDF
                 </a>
                 <a href="/#episodic" className="btn btn-outline">
                   Browse All Books
