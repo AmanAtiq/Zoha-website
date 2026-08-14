@@ -1,16 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StarRating from "./StarRating";
 import RatingBars from "./RatingBars";
 
+function formatRelativeTime(createdAt, now) {
+  if (!createdAt || !now) return "";
+
+  const seconds = Math.floor((now - new Date(createdAt).getTime()) / 1000);
+  if (!Number.isFinite(seconds) || seconds < 60) return "Just now";
+  if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+  }
+  if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  }
+
+  const days = Math.floor(seconds / 86400);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
 export default function ReviewSection({ rating, reviews: initialReviews, formPrompt, bookSlug, episodeSlug }) {
   const [reviews, setReviews] = useState(initialReviews || []);
+  const [now, setNow] = useState(0);
   const [sel, setSel] = useState(0);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [posting, setPosting] = useState(false);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    setNow(Date.now());
+    const interval = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -31,15 +56,9 @@ export default function ReviewSection({ rating, reviews: initialReviews, formPro
         }),
       });
       if (res.ok) {
-        setReviews((current) => [
-          {
-            name: name.trim() || "Reader",
-            rating: sel || 5,
-            text: trimmed,
-            when: "Just now",
-          },
-          ...current,
-        ]);
+        const { review } = await res.json();
+        setNow(Date.now());
+        setReviews((current) => [review, ...current]);
         setNotice("Thanks! Your review is now live on this page.");
         setName("");
         setText("");
@@ -81,7 +100,7 @@ export default function ReviewSection({ rating, reviews: initialReviews, formPro
                 </span>
                 <span className="review-name">{r.name}</span>
                 <StarRating value={r.rating} size="0.75rem" />
-                <span className="review-when">{r.when}</span>
+                <span className="review-when">{formatRelativeTime(r.createdAt, now) || r.when}</span>
               </div>
               <p className="review-text">{r.text}</p>
             </div>

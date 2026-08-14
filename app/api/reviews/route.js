@@ -39,5 +39,14 @@ export async function POST(request) {
     return NextResponse.json({ error: "Could not save your review." }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    review: {
+      name: name || "Reader",
+      rating,
+      text,
+      when: "Just now",
+      createdAt: new Date().toISOString(),
+    },
+  });
 }
