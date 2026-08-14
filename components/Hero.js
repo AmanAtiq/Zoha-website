@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const FALLBACK_IMAGE = "/images/logo/logo-charcoal-bg.png";
+
 export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
   const [active, setActive] = useState(0);
   const timerRef = useRef(null);
@@ -22,7 +24,25 @@ export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
     fn();
   };
 
-  if (!slides.length) return null;
+  if (!slides.length) {
+    return (
+      <section className="hero" id="hero" aria-label="Featured works">
+        <div className="hero-slider">
+          <article className="slide is-active">
+            <div
+              className="slide-bg"
+              style={{ backgroundImage: `url(${FALLBACK_IMAGE})` }}
+            />
+            <div className="slide-overlay" />
+            <div className="container slide-content">
+              <p className="slide-type">Coming Soon</p>
+              <h1 className="slide-title slide-title--always">New stories are on their way</h1>
+            </div>
+          </article>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="hero" id="hero" aria-label="Featured works">
@@ -34,13 +54,8 @@ export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
             aria-hidden={i !== active}
           >
             <div
-              className="slide-bg-blur"
-              style={{ backgroundImage: `url(${book.hero})` }}
-              aria-hidden="true"
-            />
-            <div
               className="slide-bg"
-              style={{ backgroundImage: `url(${book.hero})` }}
+              style={{ backgroundImage: `url(${book.hero || book.cover || FALLBACK_IMAGE})` }}
             />
             <div className="slide-overlay" />
             <div className="container slide-content">

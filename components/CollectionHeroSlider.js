@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const FALLBACK_IMAGE = "/images/logo/logo-charcoal-bg.png";
+
 export default function CollectionHeroSlider({ collection, slides = [] }) {
   const [active, setActive] = useState(0);
   const timerRef = useRef(null);
@@ -28,24 +30,19 @@ export default function CollectionHeroSlider({ collection, slides = [] }) {
 
   return (
     <section className="collection-hero">
-      {slides.map((book, index) => (
-        <img
-          key={`${book.slug}-blur`}
-          className={`collection-hero-image-blur${index === active ? " is-active" : ""}`}
-          src={book.hero || book.cover}
-          alt=""
-          aria-hidden="true"
-        />
-      ))}
-      {slides.map((book, index) => (
-        <img
-          key={book.slug}
-          className={`collection-hero-image${index === active ? " is-active" : ""}`}
-          src={book.hero || book.cover}
-          alt=""
-          aria-hidden={index !== active}
-        />
-      ))}
+      {slides.length ? (
+        slides.map((book, index) => (
+          <img
+            key={book.slug}
+            className={`collection-hero-image${index === active ? " is-active" : ""}`}
+            src={book.hero || book.cover || FALLBACK_IMAGE}
+            alt=""
+            aria-hidden={index !== active}
+          />
+        ))
+      ) : (
+        <img className="collection-hero-image is-active" src={FALLBACK_IMAGE} alt="" aria-hidden="true" />
+      )}
       <div className="collection-hero-overlay" />
       <div className="container collection-hero-inner">
         <div className="collection-hero-copy">
@@ -53,7 +50,11 @@ export default function CollectionHeroSlider({ collection, slides = [] }) {
           <h1>{collection.title}</h1>
           <p>{collection.description}</p>
           <div className="collection-hero-actions">
-            {activeSlide && <a className="btn btn-primary" href={`/novels/${activeSlide.slug}`}>Read / Download PDF</a>}
+            {activeSlide ? (
+              <a className="btn btn-primary" href={`/novels/${activeSlide.slug}`}>Read / Download PDF</a>
+            ) : (
+              <span className="badge-coming-soon">Coming Soon</span>
+            )}
             <a className="btn btn-outline" href="#collection-books">Browse the collection</a>
           </div>
         </div>
