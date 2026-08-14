@@ -427,7 +427,7 @@ export default function BookEditorForm({ initialBook, isNew }) {
       <div className="adm-card" data-book-tab="reviews">
         <h2>Reviews on this book</h2>
         <p className="adm-card-hint">Add, edit, or delete reader comments shown on this book&apos;s page.</p>
-        <div className="adm-actions" style={{ marginBottom: 12 }}>
+        <div className="adm-actions adm-actions-spaced">
           <button className="adm-btn adm-btn-outline adm-btn-sm" type="button" onClick={startAddReview}>
             + Add comment
           </button>

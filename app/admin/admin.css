@@ -111,6 +111,7 @@
 .adm-thumb { width: 46px; height: 62px; flex: 0 0 46px; object-fit: cover; border-radius: 7px; box-shadow: 0 2px 6px rgba(107,30,45,.16); }
 .adm-table .adm-thumb { width: 42px; height: 56px; flex-basis: 42px; border-radius: 6px; }
 .adm-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.adm-actions-spaced { margin-bottom: 12px; }
 .adm-actions-end { margin-left: auto; }
 .adm-media-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .adm-media-row > div { min-width: 0; }
@@ -156,7 +157,9 @@
 .adm-image-input { display: flex; gap: 14px; align-items: flex-start; }
 .adm-image-input .adm-img-preview { width: 84px; height: 112px; object-fit: cover; border-radius: 8px; border: 1px solid #e8dfd6; box-shadow: var(--shadow-soft); }
 .adm-image-input .adm-img-preview--wide { width: 140px; height: 70px; object-fit: cover; }
-.adm-image-input > div { flex: 1; }
+.adm-image-input > div { flex: 1; min-width: 0; }
+.adm-file-input { display: grid; gap: 10px; }
+.adm-file-preview { padding: 10px 12px; overflow: hidden; border: 1px solid #e8dfd6; border-radius: 9px; background: #fdfaf7; color: var(--ink-soft); font-size: 0.82rem; text-overflow: ellipsis; white-space: nowrap; }
 .adm-file-btn { position: relative; overflow: hidden; }
 .adm-file-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .adm-saving { position: fixed; top: 20px; right: 24px; background: var(--maroon); color: var(--white); padding: 10px 18px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; box-shadow: var(--shadow-lift); z-index: 50; }
@@ -254,6 +257,7 @@
   .adm-sidebar { position: static; height: auto; padding: 18px 16px 14px; }
   .adm-brand { padding-bottom: 16px; margin-bottom: 14px; }
   .adm-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+  .adm-nav > span { display: contents; }
   .adm-nav-group { grid-column: 1 / -1; margin: 10px 10px 2px; }
   .adm-nav-group:first-child { margin-top: 0; }
   .adm-sidebar-foot { grid-template-columns: 1fr 1fr; margin-top: 15px; padding-top: 12px; }
@@ -268,9 +272,12 @@
   .adm-home-savebar { align-items: stretch; flex-direction: column; bottom: 10px; }
   .adm-home-savebar .adm-btn { width: 100%; }
   .adm-card { padding: 20px 16px; }
-  .adm-selection-row .adm-row-between, .adm-book-header { align-items: flex-start; flex-direction: column; }
-  .adm-selection-row .adm-actions, .adm-book-header .adm-actions { width: 100%; }
-  .adm-selection-row .adm-actions .adm-btn, .adm-book-header .adm-actions .adm-btn { flex: 1; }
+  .adm-card-table { padding: 6px; }
+  .adm-selection-row .adm-row-between, .adm-book-header, .adm-row-between { align-items: flex-start; flex-direction: column; }
+  .adm-selection-row .adm-actions, .adm-book-header .adm-actions, .adm-row-between > .adm-actions { width: 100%; }
+  .adm-selection-row .adm-actions .adm-btn, .adm-book-header .adm-actions .adm-btn, .adm-row-between > .adm-actions .adm-btn { flex: 1; }
+  .adm-list-editor-item { align-items: stretch; flex-wrap: wrap; }
+  .adm-list-editor-item .adm-btn { margin-left: auto; }
   .adm-prebooking-summary { align-items: flex-start; flex-wrap: wrap; gap: 12px; padding: 15px 16px; }
   .adm-prebooking-summary .adm-media-row { min-width: calc(100% - 42px); }
   .adm-prebooking-summary-meta { margin-left: 42px; }
@@ -279,5 +286,32 @@
   .adm-prebooking-body { padding: 4px 16px 18px; }
   .adm-image-input { flex-direction: column; }
   .adm-image-input > div { width: 100%; }
-  .adm-saving { top: 12px; right: 12px; }
+  .adm-file-input > div { min-width: 0; }
+  .adm-image-input .adm-file-btn, .adm-file-input .adm-file-btn { margin-top: 8px; }
+  .adm-comment-head { align-items: flex-start; }
+  .adm-comment-head .adm-actions-end { width: 100%; margin-left: 0; }
+  .adm-comment-head .adm-actions-end .adm-btn { flex: 1; }
+  .adm-episode-summary { align-items: flex-start; flex-wrap: wrap; }
+  .adm-episode-heading { min-width: calc(100% - 82px); }
+  .adm-episode-status { margin-left: 42px; }
+  .adm-episode-kind { margin-left: 42px; }
+  .adm-episode-chevron { margin-left: auto; }
+  .adm-saving { top: 12px; right: 12px; max-width: calc(100% - 24px); }
+}
+
+@media (max-width: 420px) {
+  .adm-sidebar { padding: 16px 12px 12px; }
+  .adm-nav, .adm-sidebar-foot { grid-template-columns: 1fr; }
+  .adm-main { padding: 24px 12px 44px; }
+  .adm-home-topbar { margin: -24px 0 16px; }
+  .adm-home-tabs, .adm-book-tabs { margin-right: -12px; margin-left: -12px; padding: 0 12px; }
+  .adm-card { padding: 18px 14px; }
+  .adm-card-head, .adm-card-body { padding-right: 14px; padding-left: 14px; }
+  .adm-book-editor .adm-card[data-book-tab] { padding: 18px 14px; }
+  .adm-prebooking-summary .adm-media-row { min-width: 100%; }
+  .adm-prebooking-summary-meta { width: 100%; margin-left: 0; justify-content: space-between; }
+  .adm-episode-heading { min-width: 0; }
+  .adm-episode-status { margin-left: 42px; }
+  .adm-btn { padding: 10px 14px; }
+  .adm-btn-sm { padding: 7px 10px; }
 }
