@@ -22,7 +22,7 @@ export default function Afsanay({ items = [] }) {
                 <p>{book.tagline}</p>
               </div>
               <a href={`/novels/${book.slug}`} className="link-arrow">
-                Read →
+                Read Now
               </a>
             </article>
           ))}

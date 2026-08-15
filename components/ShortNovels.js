@@ -26,7 +26,7 @@ export default function ShortNovels({ items = [] }) {
                   )}
                 </p>
                 <a href={`/novels/${book.slug}`} className="link-arrow">
-                  Read Now →
+                  Read Now
                 </a>
               </div>
             </article>
