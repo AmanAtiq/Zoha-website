@@ -534,13 +534,13 @@ h1, h2, h3, h4 {
 
 @media (max-width: 760px) {
   .about-grid { grid-template-columns: 1fr; text-align: center; }
-  .about-portrait { width: 160px; height: 160px; }
+  .about-portrait { width: 120px; height: 120px; }
   .about-mission-ur, .about-mission, .about-poem, .about-bio { margin-left: auto; margin-right: auto; }
   .about-copy h2 { justify-content: center; }
 }
 
 @media (max-width: 480px) {
-  .about-portrait { width: 120px; height: 120px; border-width: 4px; }
+  .about-portrait { width: 90px; height: 90px; border-width: 4px; }
 }
 
 /* ---------- Quote ---------- */
@@ -699,9 +699,8 @@ h1, h2, h3, h4 {
 .collection-hero-dots button { width: 8px; height: 8px; border-radius: 50%; background: rgba(250,245,240,0.45); transition: background var(--transition), width var(--transition); }
 .collection-hero-dots button.is-active { width: 24px; border-radius: 999px; background: var(--white); }
 .collection-intro { border-bottom: 1px solid rgba(107,30,45,0.12); background: var(--white); }
-.collection-intro-inner { display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; align-items: center; gap: 34px; padding-top: 34px; padding-bottom: 34px; }
-.collection-intro-copy { max-width: 650px; color: var(--maroon-dark); font-family: var(--font-heading); font-size: clamp(1.35rem, 2.6vw, 2rem); font-style: italic; line-height: 1.25; }
-.collection-count { color: var(--ink-soft); font-size: 0.76rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.collection-intro-inner { padding-top: 30px; padding-bottom: 30px; text-align: center; }
+.collection-intro-copy { max-width: 600px; margin: 0 auto; color: var(--maroon-dark); font-family: var(--font-heading); font-size: clamp(1rem, 2vw, 1.35rem); font-style: italic; line-height: 1.35; }
 .collection-books { background: var(--cream); }
 .collection-grid { display: grid; gap: 32px; }
 .collection-grid--episodic { grid-template-columns: minmax(0, 1fr); }
@@ -1127,6 +1126,28 @@ h1, h2, h3, h4 {
 }
 .social-icon svg { width: 22px; height: 22px; }
 .social-icon:hover { background: var(--maroon); color: var(--white); transform: translateY(-4px); }
+
+/* ---------- Homepage typography ---------- */
+@media (max-width: 700px) {
+  .home-page .section-head h2,
+  .home-page .about-copy h2,
+  .home-page .socials-section h2 { font-size: 1.35rem; }
+  .home-page .section-lede,
+  .home-page .about-bio,
+  .home-page .episodic-body p,
+  .home-page .newsletter-copy p,
+  .home-page .faq-answer p,
+  .home-page .socials-lede { font-size: 0.8rem; }
+  .home-page .about-mission-ur,
+  .home-page .about-mission,
+  .home-page .about-poem,
+  .home-page .quote-section .quote-ur,
+  .home-page .quote-section .quote-en { font-size: 0.88rem; }
+  .home-page .episodic-body h3 { font-size: 1.2rem; }
+  .home-page .book-card-body h3 { font-size: 1rem; }
+  .home-page .afsana-body h3,
+  .home-page .faq-question { font-size: 0.9rem; }
+}
 
 /* ---------- Footer ---------- */
 .site-footer { background: var(--charcoal-dark); color: rgba(250,245,240,0.78); }

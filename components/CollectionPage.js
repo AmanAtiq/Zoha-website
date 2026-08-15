@@ -32,9 +32,7 @@ export default function CollectionPage({ type, items = [], heroSlides = [] }) {
 
       <section className="collection-intro">
         <div className="container collection-intro-inner">
-          <p className="eyebrow eyebrow--dark">The collection</p>
           <p className="collection-intro-copy">{collection.intro}</p>
-          <span className="collection-count">{String(items.length).padStart(2, "0")} titles to discover</span>
         </div>
       </section>
 

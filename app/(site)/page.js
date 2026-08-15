@@ -16,16 +16,16 @@ export default async function HomePage() {
   const home = await getHome();
 
   return (
-    <main>
+    <main className="home-page">
       <Hero
         slides={home.heroSlides}
         autoplayMs={home.heroAutoplayMs}
         lede={home.heroLede}
       />
       <AuthorIntro intro={home.authorIntro} />
-      <EpisodicNovels items={home.episodic} />
-      <ShortNovels items={home.shortNovels} />
-      <Afsanay items={home.afsanay} />
+      {home.episodic.length > 0 && <EpisodicNovels items={home.episodic} />}
+      {home.shortNovels.length > 0 && <ShortNovels items={home.shortNovels} />}
+      {home.afsanay.length > 0 && <Afsanay items={home.afsanay} />}
       <Quote quotes={home.quotes} text={home.quoteText} cite={home.quoteCite} />
       <Reviews testimonials={home.testimonials} lede={home.reviewsLede} />
       <Newsletter />

@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 
 const NAV_LINKS = [
-  { href: "/episodic-novels", label: "Episodic Novels" },
-  { href: "/short-novels", label: "Short Novels" },
-  { href: "/afsanay", label: "Afsanay" },
+  { href: "/episodic-novels", label: "Episodic Novels", type: "episodic" },
+  { href: "/short-novels", label: "Short Novels", type: "short-novel" },
+  { href: "/afsanay", label: "Afsanay", type: "afsana" },
   { href: "/#about", label: "About" },
-  { href: "/#reviews", label: "Reviews" },
   { href: "/prebooking", label: "Prebooking" },
 ];
 
-export default function Header() {
+export default function Header({ availableSections = [] }) {
+  const visibleNavLinks = NAV_LINKS.filter((link) => !link.type || availableSections.includes(link.type));
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -48,7 +48,7 @@ export default function Header() {
 
         <nav className={`main-nav${open ? " is-open" : ""}`} aria-label="Primary">
           <ul>
-            {NAV_LINKS.map((link) => (
+            {visibleNavLinks.map((link) => (
               <li key={link.href}>
                 <a href={link.href} onClick={() => setOpen(false)}>
                   {link.label}
