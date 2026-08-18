@@ -18,10 +18,8 @@ export default function Afsanay({ items = [] }) {
                 <img src={book.cover} alt={`${book.title} cover`} />
               </div>
               <div className="afsana-body">
-                <h3>
-                  {book.title}
-                  {book.comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
-                </h3>
+                <h3>{book.title}</h3>
+                {book.comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
                 <p>{book.tagline}</p>
               </div>
               <a href={`/novels/${book.slug}`} className="link-arrow">

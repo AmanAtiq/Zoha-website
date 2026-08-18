@@ -33,8 +33,8 @@ export default function EpisodePage({ book, episode, index }) {
           <div style={{ flex: 1, minWidth: 280 }}>
             <h1 style={{ fontSize: "2rem", marginBottom: 6 }}>
               Episode {epLabel} · {episode.title}
-              {comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
             </h1>
+            {comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
             {episode.urduTitle && (
               <p className="episode-title-ur" lang="ur" dir="rtl">{episode.urduTitle}</p>
             )}
@@ -89,13 +89,11 @@ export default function EpisodePage({ book, episode, index }) {
                 key={ep.slug}
                 className={`episode-card${ep.slug === episode.slug ? " is-current" : ""}`}
               >
-                <div className="episode-index">EP {String(i + 1).padStart(2, "0")}</div>
-                <div className="episode-title">
-                  {ep.title}
-                  {(book.comingSoon || ep.comingSoon) && (
-                    <span className="coming-soon-flag">Coming Soon</span>
-                  )}
+                <div className="episode-index">
+                  EP {String(i + 1).padStart(2, "0")}
+                  {(book.comingSoon || ep.comingSoon) && " · Coming soon"}
                 </div>
+                <div className="episode-title">{ep.title}</div>
               </a>
             ))}
             {book.moreEpisodesComing && (

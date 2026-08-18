@@ -1600,9 +1600,10 @@ h1, h2, h3, h4 {
 
 /* ---------- Coming soon tag + gated Read/Download button ---------- */
 .coming-soon-flag {
-  display: inline-block;
-  margin-left: 8px;
-  vertical-align: middle;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 6px 0 0;
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1611,6 +1612,9 @@ h1, h2, h3, h4 {
   background: var(--maroon);
   padding: 3px 10px;
   border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .coming-soon-btn-wrap { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .coming-soon-note { font-size: 0.85rem; font-weight: 600; color: var(--maroon-dark); }
