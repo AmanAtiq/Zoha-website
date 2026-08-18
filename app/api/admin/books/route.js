@@ -48,6 +48,7 @@ export async function GET() {
     reviewCount: revCounts[b.slug] || 0,
     prebookOnly: !!b.prebook_only,
     published: b.published ?? true,
+    comingSoon: !!b.coming_soon,
     inDb: true,
   })).filter((b) => !b.prebookOnly);
 
@@ -84,6 +85,10 @@ export async function POST(request) {
   }
   if (insert.error && /published/i.test(insert.error.message)) {
     const { published: _drop, ...without } = row;
+    insert = await admin.from("books").insert(without).select().single();
+  }
+  if (insert.error && /coming_soon/i.test(insert.error.message)) {
+    const { coming_soon: _drop, ...without } = row;
     insert = await admin.from("books").insert(without).select().single();
   }
   if (insert.error) {

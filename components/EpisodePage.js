@@ -1,9 +1,11 @@
 import StarRating from "./StarRating";
 import ReviewSection from "./ReviewSection";
 import ShareButton from "./ShareButton";
+import ReadDownloadButton from "./ReadDownloadButton";
 
 export default function EpisodePage({ book, episode, index }) {
   const epLabel = String(index + 1).padStart(2, "0");
+  const comingSoon = book.comingSoon || episode.comingSoon;
 
   return (
     <main>
@@ -31,6 +33,7 @@ export default function EpisodePage({ book, episode, index }) {
           <div style={{ flex: 1, minWidth: 280 }}>
             <h1 style={{ fontSize: "2rem", marginBottom: 6 }}>
               Episode {epLabel} · {episode.title}
+              {comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
             </h1>
             {episode.urduTitle && (
               <p className="episode-title-ur" lang="ur" dir="rtl">{episode.urduTitle}</p>
@@ -69,14 +72,7 @@ export default function EpisodePage({ book, episode, index }) {
             )}
 
             <div className="book-detail-actions">
-              <a
-                href={episode.pdf}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-primary"
-              >
-                Read / Download PDF
-              </a>
+              <ReadDownloadButton href={episode.pdf} comingSoon={comingSoon} />
               <ShareButton title={`${book.title} — ${episode.title}`} text={episode.synopsis} />
             </div>
           </div>
@@ -94,7 +90,12 @@ export default function EpisodePage({ book, episode, index }) {
                 className={`episode-card${ep.slug === episode.slug ? " is-current" : ""}`}
               >
                 <div className="episode-index">EP {String(i + 1).padStart(2, "0")}</div>
-                <div className="episode-title">{ep.title}</div>
+                <div className="episode-title">
+                  {ep.title}
+                  {(book.comingSoon || ep.comingSoon) && (
+                    <span className="coming-soon-flag">Coming Soon</span>
+                  )}
+                </div>
               </a>
             ))}
             {book.moreEpisodesComing && (

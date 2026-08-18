@@ -18,7 +18,10 @@ export default function ShortNovels({ items = [] }) {
                 <span className="book-badge">{book.badge}</span>
               </div>
               <div className="book-card-body">
-                <h3>{book.title}</h3>
+                <h3>
+                  {book.title}
+                  {book.comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
+                </h3>
                 <p>
                   {book.tagline}
                   {book.placeholderCopy && (

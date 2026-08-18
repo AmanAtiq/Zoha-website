@@ -1597,3 +1597,20 @@ h1, h2, h3, h4 {
   padding: 3px 10px;
   border-radius: 999px;
 }
+
+/* ---------- Coming soon tag + gated Read/Download button ---------- */
+.coming-soon-flag {
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: var(--maroon);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.coming-soon-btn-wrap { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.coming-soon-note { font-size: 0.85rem; font-weight: 600; color: var(--maroon-dark); }

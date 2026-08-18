@@ -70,6 +70,23 @@ export default function AdminBooksPage() {
     }
   };
 
+  const toggleComingSoon = async (book) => {
+    setBusyId(book.slug);
+    try {
+      await api(`/api/admin/books/${book.slug}`, {
+        method: "PATCH",
+        body: JSON.stringify({ comingSoon: !book.comingSoon }),
+      });
+      setBooks((prev) =>
+        prev.map((b) => (b.slug === book.slug ? { ...b, comingSoon: !b.comingSoon } : b))
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const removeBook = async (book) => {
     if (!window.confirm(`Delete "${book.title}"? This also removes its episodes, reviews and prebooking.`)) return;
     try {
@@ -128,6 +145,7 @@ export default function AdminBooksPage() {
                     <th>Episodes</th>
                     <th>Reviews</th>
                     <th>Published</th>
+                    <th>Coming soon</th>
                     <th>On homepage</th>
                     <th></th>
                   </tr>
@@ -157,6 +175,16 @@ export default function AdminBooksPage() {
                           className={`adm-toggle${book.published ?? true ? " is-on" : ""}`}
                           disabled={busyId === book.slug}
                           onClick={() => togglePublished(book)}
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={!!book.comingSoon}
+                          className={`adm-toggle${book.comingSoon ? " is-on" : ""}`}
+                          disabled={busyId === book.slug}
+                          onClick={() => toggleComingSoon(book)}
                         />
                       </td>
                       <td>

@@ -18,6 +18,7 @@ export default function EpisodicHub({ book }) {
           <p className="book-detail-urdu" lang="ur" dir="rtl">
             {book.titleUrdu}
           </p>
+          {book.comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
         </div>
       </section>
 
@@ -152,7 +153,12 @@ export default function EpisodicHub({ book }) {
             {book.episodes.map((ep, i) => (
               <a href={`/novels/${book.slug}/${ep.slug}`} className="episode-card" key={ep.slug}>
                 <div className="episode-index">EPISODE {String(i + 1).padStart(2, "0")}</div>
-                <div className="episode-title">{ep.title}</div>
+                <div className="episode-title">
+                  {ep.title}
+                  {(book.comingSoon || ep.comingSoon) && (
+                    <span className="coming-soon-flag">Coming Soon</span>
+                  )}
+                </div>
                 {ep.urduTitle && (
                   <div className="episode-title-ur" lang="ur" dir="rtl">{ep.urduTitle}</div>
                 )}

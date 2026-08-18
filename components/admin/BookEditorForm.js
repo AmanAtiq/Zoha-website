@@ -56,6 +56,7 @@ const DEFAULT_BOOK = {
   homeVisible: true,
   homeOrder: 0,
   published: true,
+  comingSoon: false,
 };
 
 const normalize = (b) => {
@@ -361,6 +362,12 @@ export default function BookEditorForm({ initialBook, isNew }) {
           <Toggle label="Placeholder content" hint="Shows the 'final copy pending' banner" checked={book.contentPlaceholder} onChange={(v) => set({ contentPlaceholder: v })} />
           <Toggle label="Placeholder copy tag" hint="Shows the small placeholder flag" checked={book.placeholderCopy} onChange={(v) => set({ placeholderCopy: v })} />
         </div>
+        <Toggle
+          label="Coming soon"
+          hint="Card and page stay visible with a 'Coming Soon' tag, but Read / Download PDF shows a coming-soon message instead of opening the file. For episodic novels this applies to every episode unless overridden per episode below."
+          checked={book.comingSoon}
+          onChange={(v) => set({ comingSoon: v })}
+        />
       </div>
 
       <div className="adm-card" data-book-tab="episodes">
@@ -375,7 +382,7 @@ export default function BookEditorForm({ initialBook, isNew }) {
             onClick={() => {
               setEpisodes([
                 ...episodes,
-                { slug: "", title: "", urduTitle: "", teaserUr: "", synopsis: "", closingLineUr: "", pdf: "", readTime: "", published: true },
+                { slug: "", title: "", urduTitle: "", teaserUr: "", synopsis: "", closingLineUr: "", pdf: "", readTime: "", published: true, comingSoon: false },
               ]);
               setExpandedEpisode(episodes.length);
             }}
@@ -416,6 +423,12 @@ export default function BookEditorForm({ initialBook, isNew }) {
               />
               <FileField label="PDF" value={ep.pdf} placeholder="Upload episode PDF" onChange={(url) => setEpisode(i, { pdf: url })} />
             </div>
+            <Toggle
+              label="Coming soon"
+              hint="Overrides the book's Coming soon flag for just this episode. Read / Download PDF shows a coming-soon message instead of opening the file."
+              checked={!!ep.comingSoon}
+              onChange={(v) => setEpisode(i, { comingSoon: v })}
+            />
             <TextArea label="Teaser (Urdu)" rows={2} value={ep.teaserUr} onChange={(e) => setEpisode(i, { teaserUr: e.target.value })} dir="rtl" />
             <TextArea label="Synopsis" rows={2} value={ep.synopsis} onChange={(e) => setEpisode(i, { synopsis: e.target.value })} />
             <TextArea label="Closing line (Urdu)" rows={2} value={ep.closingLineUr} onChange={(e) => setEpisode(i, { closingLineUr: e.target.value })} dir="rtl" />

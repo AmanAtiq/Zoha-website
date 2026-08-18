@@ -22,6 +22,7 @@ export default function EpisodicNovels({ items = [] }) {
               <span className={`book-status ${book.moreEpisodesComing ? "book-status--ongoing" : "book-status--complete"}`}>
                 {book.moreEpisodesComing ? "Ongoing" : "Complete"}
               </span>
+              {book.comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
               <p>{book.tagline}</p>
               <a href={`/novels/${book.slug}`} className="btn btn-primary">
                 Read Now

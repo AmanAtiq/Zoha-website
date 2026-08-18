@@ -42,6 +42,7 @@ create table if not exists public.books (
   home_order integer default 0,
   prebook_only boolean default false,
   published boolean default true,
+  coming_soon boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -61,6 +62,7 @@ create table if not exists public.episodes (
   read_time text default '',
   completed boolean default false,
   published boolean default true,
+  coming_soon boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   unique (book_slug, slug)
@@ -125,6 +127,16 @@ alter table public.books
 
 alter table public.episodes
   add column if not exists published boolean default true;
+
+-- "Coming soon" gate: cards and pages stay visible, but Read / Download PDF
+-- shows a coming-soon message instead of opening the file. A book-level flag
+-- cascades to every episode of that book; an episode-level flag overrides
+-- for just that one episode.
+alter table public.books
+  add column if not exists coming_soon boolean default false;
+
+alter table public.episodes
+  add column if not exists coming_soon boolean default false;
 
 alter table public.home_settings
   add column if not exists collection_sliders jsonb default '{}';

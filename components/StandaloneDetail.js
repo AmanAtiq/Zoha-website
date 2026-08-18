@@ -2,6 +2,7 @@ import StarRating from "./StarRating";
 import ReviewSection from "./ReviewSection";
 import MoreFromAuthor from "./MoreFromAuthor";
 import ShareButton from "./ShareButton";
+import ReadDownloadButton from "./ReadDownloadButton";
 
 export default function StandaloneDetail({ book }) {
   return (
@@ -18,6 +19,7 @@ export default function StandaloneDetail({ book }) {
             {book.titleUrdu}
           </p>
           <span className="book-badge book-badge--static">{book.badge}</span>
+          {book.comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
         </div>
       </section>
 
@@ -58,14 +60,7 @@ export default function StandaloneDetail({ book }) {
             </p>
 
             <div className="book-detail-actions">
-              <a
-                href={book.pdf}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-primary"
-              >
-                Read / Download PDF
-              </a>
+              <ReadDownloadButton href={book.pdf} comingSoon={book.comingSoon} />
               <ShareButton title={book.title} text={book.tagline} />
             </div>
           </div>

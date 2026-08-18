@@ -65,6 +65,10 @@ export async function PUT(request, { params }) {
     const { published: _drop, ...without } = row;
     ({ error } = await admin.from("books").upsert(without, { onConflict: "slug" }));
   }
+  if (error && /coming_soon/i.test(error.message)) {
+    const { coming_soon: _drop, ...without } = row;
+    ({ error } = await admin.from("books").upsert(without, { onConflict: "slug" }));
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Replace episodes wholesale.
@@ -94,6 +98,7 @@ export async function PATCH(request, { params }) {
   if (typeof body.homeVisible === "boolean") patch.home_visible = body.homeVisible;
   if (typeof body.homeOrder === "number") patch.home_order = body.homeOrder;
   if (typeof body.published === "boolean") patch.published = body.published;
+  if (typeof body.comingSoon === "boolean") patch.coming_soon = body.comingSoon;
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
