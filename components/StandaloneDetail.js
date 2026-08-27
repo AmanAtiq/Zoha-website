@@ -7,10 +7,8 @@ import ReadDownloadButton from "./ReadDownloadButton";
 export default function StandaloneDetail({ book }) {
   return (
     <main>
-      <section
-        className="book-detail-hero"
-        style={{ backgroundImage: `url(${book.hero})` }}
-      >
+      <section className="book-detail-hero">
+        <img className="book-detail-hero-image" src={book.hero} alt="" aria-hidden="true" />
         <div className="book-detail-hero-overlay" />
         <div className="container book-detail-hero-inner">
           <p className="eyebrow">{book.typeLabel}</p>
@@ -23,7 +21,7 @@ export default function StandaloneDetail({ book }) {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section book-detail-overview-section">
         <div className="container book-detail-body">
           <div className="book-detail-cover">
             <img src={book.cover} alt={`${book.title} cover`} />
@@ -36,17 +34,15 @@ export default function StandaloneDetail({ book }) {
             )}
 
             {book.rating && (
-              <div
-                style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}
-              >
+              <div className="book-rating-summary">
                 <StarRating value={book.rating.avg} />
-                <span style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                <span className="book-rating-count">
                   {book.rating.avg.toFixed(1)} · {book.rating.count.toLocaleString()} reviews
                 </span>
               </div>
             )}
 
-            <div className="chip-row" style={{ marginBottom: 16 }}>
+            <div className="chip-row book-detail-statuses">
               <span className="chip">Complete</span>
               <span className="chip chip--outline">Free to read</span>
               <span className="chip chip--outline">Urdu</span>
@@ -60,7 +56,13 @@ export default function StandaloneDetail({ book }) {
             </p>
 
             <div className="book-detail-actions">
-              <ReadDownloadButton href={book.pdf} comingSoon={book.comingSoon} />
+              <ReadDownloadButton
+                href={book.pdf}
+                comingSoon={book.comingSoon}
+                bookSlug={book.slug}
+                showStats={book.showReadDownloadStats}
+                stats={book.assetStats}
+              />
               <ShareButton title={book.title} text={book.tagline} />
             </div>
           </div>

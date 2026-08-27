@@ -144,6 +144,7 @@ export default function AdminBooksPage() {
                     <th>Type</th>
                     <th>Episodes</th>
                     <th>Reviews</th>
+                    <th>Reads / downloads</th>
                     <th>Published</th>
                     <th>Coming soon</th>
                     <th>On homepage</th>
@@ -166,6 +167,11 @@ export default function AdminBooksPage() {
                       <td>{book.episodeCount}</td>
                       <td>
                         {book.reviewCount}
+                      </td>
+                      <td>
+                        <span className="adm-comment-meta">
+                          {Number(book.assetStats?.readCount || 0).toLocaleString()} / {Number(book.assetStats?.downloadCount || 0).toLocaleString()}
+                        </span>
                       </td>
                       <td>
                         <button

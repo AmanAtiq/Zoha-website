@@ -43,6 +43,7 @@ create table if not exists public.books (
   prebook_only boolean default false,
   published boolean default true,
   coming_soon boolean default false,
+  show_read_download_stats boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -80,6 +81,17 @@ create table if not exists public.reviews (
   approved boolean default false,
   featured boolean default false,
   created_at timestamptz default now()
+);
+
+-- ---------- Read / download counters ----------
+create table if not exists public.book_asset_stats (
+  id uuid primary key default gen_random_uuid(),
+  book_slug text not null references public.books(slug) on delete cascade,
+  episode_slug text default '',
+  read_count integer default 0,
+  download_count integer default 0,
+  updated_at timestamptz default now(),
+  unique (book_slug, episode_slug)
 );
 
 -- ---------- Homepage testimonials ----------
@@ -135,6 +147,9 @@ alter table public.episodes
 alter table public.books
   add column if not exists coming_soon boolean default false;
 
+alter table public.books
+  add column if not exists show_read_download_stats boolean default false;
+
 alter table public.episodes
   add column if not exists coming_soon boolean default false;
 
@@ -163,6 +178,7 @@ create table if not exists public.admin_sessions (
 alter table public.books enable row level security;
 alter table public.episodes enable row level security;
 alter table public.reviews enable row level security;
+alter table public.book_asset_stats enable row level security;
 alter table public.testimonials enable row level security;
 alter table public.home_settings enable row level security;
 alter table public.prebooking enable row level security;
@@ -175,6 +191,8 @@ drop policy if exists "public read episodes" on public.episodes;
 create policy "public read episodes" on public.episodes for select using (true);
 drop policy if exists "public read reviews" on public.reviews;
 create policy "public read reviews" on public.reviews for select using (true);
+drop policy if exists "no public asset stats writes" on public.book_asset_stats;
+create policy "no public asset stats writes" on public.book_asset_stats for all using (false) with check (false);
 drop policy if exists "public read testimonials" on public.testimonials;
 create policy "public read testimonials" on public.testimonials for select using (active = true);
 drop policy if exists "public read home settings" on public.home_settings;
@@ -216,6 +234,40 @@ drop trigger if exists home_settings_updated_at on public.home_settings;
 create trigger home_settings_updated_at before update on public.home_settings
   for each row execute function public.set_updated_at();
 
+drop trigger if exists book_asset_stats_updated_at on public.book_asset_stats;
+create trigger book_asset_stats_updated_at before update on public.book_asset_stats
+  for each row execute function public.set_updated_at();
+
+create or replace function public.increment_book_asset_stat(
+  p_book_slug text,
+  p_episode_slug text default '',
+  p_action text default 'read'
+)
+returns public.book_asset_stats
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  stat_row public.book_asset_stats;
+begin
+  insert into public.book_asset_stats (book_slug, episode_slug, read_count, download_count)
+  values (
+    p_book_slug,
+    coalesce(p_episode_slug, ''),
+    case when p_action = 'download' then 0 else 1 end,
+    case when p_action = 'download' then 1 else 0 end
+  )
+  on conflict (book_slug, episode_slug)
+  do update set
+    read_count = public.book_asset_stats.read_count + case when p_action = 'download' then 0 else 1 end,
+    download_count = public.book_asset_stats.download_count + case when p_action = 'download' then 1 else 0 end
+  returning * into stat_row;
+
+  return stat_row;
+end;
+$$;
+
 -- ---------- Indexes ----------
 create index if not exists books_type_idx on public.books (type);
 create index if not exists books_home_idx on public.books (home_visible, home_order);
@@ -223,6 +275,7 @@ create index if not exists books_published_idx on public.books (published);
 create index if not exists episodes_book_idx on public.episodes (book_slug, episode_number);
 create index if not exists reviews_book_idx on public.reviews (book_slug);
 create index if not exists reviews_approved_idx on public.reviews (approved);
+create index if not exists book_asset_stats_book_idx on public.book_asset_stats (book_slug);
 
 -- ---------- Storage (for admin image/pdf uploads) ----------
 insert into storage.buckets (id, name, public)

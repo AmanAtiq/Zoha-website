@@ -216,12 +216,14 @@ export function FileField({ label, value, onChange, hint, placeholder = "Select 
     upload(file);
   };
 
+  const displayName = value ? decodeURIComponent(value.split("/").pop().split("?")[0]).replace(/^\d+[-_]/, "") : "";
+
   return (
     <Field label={label} hint={hint || error}>
       <div className="adm-file-input" onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
         {value && (
           <div className="adm-file-preview">
-            <span>{value.split("/").pop()}</span>
+            <span>{displayName}</span>
           </div>
         )}
         <div>

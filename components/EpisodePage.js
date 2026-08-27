@@ -9,7 +9,7 @@ export default function EpisodePage({ book, episode, index }) {
 
   return (
     <main>
-      <section className="section" style={{ paddingBottom: 0 }}>
+      <section className="section episode-breadcrumb-section">
         <div className="container">
           <p className="breadcrumb">
             <a href="/#episodic">Novels</a> ›{" "}
@@ -19,52 +19,44 @@ export default function EpisodePage({ book, episode, index }) {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 18 }}>
-        <div
-          className="container"
-          style={{ display: "flex", gap: 40, alignItems: "flex-start", flexWrap: "wrap" }}
-        >
-          <div
-            className="book-detail-cover"
-            style={{ flex: "0 0 220px", width: 220, marginTop: 0 }}
-          >
+      <section className="section episode-detail-section">
+        <div className="container episode-detail-layout">
+          <div className="book-detail-cover episode-detail-cover">
             <img src={book.cover} alt={`${book.title} cover`} />
           </div>
-          <div style={{ flex: 1, minWidth: 280 }}>
-            <h1 style={{ fontSize: "2rem", marginBottom: 6 }}>
+          <div className="episode-detail-content">
+            <h1 className="episode-heading">
               Episode {epLabel} · {episode.title}
             </h1>
             {comingSoon && <span className="coming-soon-flag">Coming Soon</span>}
             {episode.urduTitle && (
               <p className="episode-title-ur" lang="ur" dir="rtl">{episode.urduTitle}</p>
             )}
-            <p style={{ fontSize: "0.85rem", color: "var(--ink-soft)", margin: "10px 0 14px" }}>
+            <p className="episode-book-attribution">
               {book.title} · an episodic novel by Zoha Asif
             </p>
 
-            <div className="chip-row" style={{ marginBottom: 14 }}>
+            <div className="chip-row episode-statuses">
               {episode.readTime && <span className="chip">{episode.readTime}</span>}
               <span className="chip chip--outline">Urdu</span>
             </div>
 
             {episode.rating && (
-              <div
-                style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}
-              >
+              <div className="book-rating-summary episode-rating-summary">
                 <StarRating value={episode.rating.avg} />
-                <span style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                <span className="book-rating-count">
                   {episode.rating.avg.toFixed(1)} · {episode.rating.count.toLocaleString()} reviews
                 </span>
               </div>
             )}
 
             {episode.teaserUr && (
-              <div className="excerpt-block" style={{ marginBottom: 16 }}>
+              <div className="excerpt-block episode-teaser">
                 <div className="ur" lang="ur" dir="rtl">{episode.teaserUr}</div>
               </div>
             )}
 
-            <p className="detail-prose" style={{ marginBottom: 8 }}>
+            <p className="detail-prose episode-synopsis">
               {episode.synopsis}
             </p>
             {episode.closingLineUr && (
@@ -72,7 +64,14 @@ export default function EpisodePage({ book, episode, index }) {
             )}
 
             <div className="book-detail-actions">
-              <ReadDownloadButton href={episode.pdf} comingSoon={comingSoon} />
+              <ReadDownloadButton
+                href={episode.pdf}
+                comingSoon={comingSoon}
+                bookSlug={book.slug}
+                episodeSlug={episode.slug}
+                showStats={book.showReadDownloadStats}
+                stats={episode.assetStats}
+              />
               <ShareButton title={`${book.title} — ${episode.title}`} text={episode.synopsis} />
             </div>
           </div>
@@ -109,7 +108,7 @@ export default function EpisodePage({ book, episode, index }) {
       <section className="detail-section detail-section--tint">
         <div className="container">
           <p className="lbl">About The Novel</p>
-          <p className="detail-prose" style={{ marginBottom: 16 }}>
+          <p className="detail-prose episode-about-prose">
             {book.description}
           </p>
           <div className="chip-row">

@@ -257,10 +257,12 @@ h1, h2, h3, h4 {
 .slide-bg {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
+.slide.is-active .slide-bg { animation: hero-image-settle 6.5s ease-out both; }
 .slide-overlay {
   position: absolute;
   inset: 0;
@@ -300,6 +302,25 @@ h1, h2, h3, h4 {
   gap: 14px;
   margin-top: 8px;
   flex-wrap: wrap;
+}
+.slide.is-active .slide-type,
+.slide.is-active .slide-title,
+.slide.is-active .slide-lede,
+.slide.is-active .slide-actions {
+  animation: hero-copy-enter 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.slide.is-active .slide-type { animation-delay: 0.08s; }
+.slide.is-active .slide-title { animation-delay: 0.18s; }
+.slide.is-active .slide-lede { animation-delay: 0.26s; }
+.slide.is-active .slide-actions { animation-delay: 0.34s; }
+
+@keyframes hero-image-settle {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+@keyframes hero-copy-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .slider-arrow {
@@ -570,6 +591,20 @@ h1, h2, h3, h4 {
   visibility: visible;
   transform: translateY(0);
 }
+.quote-slide.is-active .quote-ur,
+.quote-slide.is-active .quote-en,
+.quote-slide.is-active cite {
+  animation: quote-copy-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.quote-slide.is-active .quote-ur { animation-delay: 0.08s; }
+.quote-slide.is-active .quote-en { animation-delay: 0.18s; }
+.quote-slide.is-active cite { animation-delay: 0.28s; }
+
+@keyframes quote-copy-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .quote-section .quote-ur {
   /* Same Nastaliq face + cadence as About (.about-mission-ur / .about-poem) */
   font-family: var(--font-urdu);
@@ -1200,6 +1235,7 @@ h1, h2, h3, h4 {
 /* ---------- Book detail page ---------- */
 .book-detail-hero {
   position: relative;
+  margin-top: 84px;
   height: 56vh;
   min-height: 380px;
   max-height: 560px;
@@ -1208,6 +1244,14 @@ h1, h2, h3, h4 {
   background-color: var(--charcoal-dark);
   display: flex;
   align-items: flex-end;
+}
+.book-detail-hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 .book-detail-hero-overlay {
   position: absolute;
@@ -1232,6 +1276,19 @@ h1, h2, h3, h4 {
   margin-bottom: 14px;
 }
 .book-badge--static { position: static; display: inline-block; }
+
+.book-rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.book-rating-count {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.book-detail-statuses { margin-bottom: 16px; }
+.notify-button { border-color: var(--rose-light); color: var(--ink-soft); }
 
 .breadcrumb {
   font-size: 0.82rem;
@@ -1273,6 +1330,21 @@ h1, h2, h3, h4 {
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
+.read-download-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.read-download-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.read-download-stats {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
 .book-detail-note {
   color: var(--ink-soft);
   font-size: 0.9rem;
@@ -1280,11 +1352,105 @@ h1, h2, h3, h4 {
   margin-bottom: 26px;
 }
 
+.episode-breadcrumb-section {
+  margin-top: 84px;
+  padding-bottom: 0;
+}
+.episode-detail-section { padding-top: 18px; }
+.episode-detail-layout {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.episode-detail-cover {
+  flex: 0 0 220px;
+  width: 220px;
+  margin-top: 0;
+}
+.episode-detail-content {
+  flex: 1;
+  min-width: 280px;
+}
+.episode-heading {
+  font-size: 2rem;
+  margin-bottom: 6px;
+}
+.episode-book-attribution {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 10px 0 14px;
+}
+.episode-statuses { margin-bottom: 14px; }
+.episode-rating-summary { margin-bottom: 14px; }
+.episode-teaser { margin-bottom: 16px; }
+.episode-synopsis { margin-bottom: 8px; }
+.episode-about-prose { margin-bottom: 16px; }
+
+@media (max-width: 700px) {
+  .book-detail-hero {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 2048 / 910;
+  }
+  .book-detail-hero-overlay { background: linear-gradient(180deg, rgba(20,10,12,0.35) 0%, rgba(20,10,12,0.55) 55%, rgba(20,10,12,0.92) 100%); }
+  .book-detail-hero-inner { padding-bottom: 10px; }
+  .book-detail-hero-inner h1 { font-size: 1.3rem; line-height: 1.05; margin-bottom: 4px; }
+  .book-detail-hero-inner .eyebrow { font-size: 0.56rem; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .book-detail-urdu { font-size: 0.78rem; line-height: 1.5; margin-bottom: 8px; }
+  .book-detail-hero .book-badge,
+  .book-detail-hero .coming-soon-flag { padding: 4px 8px; font-size: 0.58rem; }
+
+  .book-detail-overview-section { padding: 48px 0; }
+  .book-detail-body { gap: 28px; }
+  .book-detail-overview-section .book-detail-cover { max-width: 160px; margin: 0 auto; border-width: 4px; }
+  .book-rating-summary { gap: 6px; margin-bottom: 8px; }
+  .book-rating-count { font-size: 0.72rem; }
+  .book-detail-statuses { margin-bottom: 10px; justify-content: center; }
+  .book-detail-statuses .chip,
+  .detail-section .chip { padding: 4px 9px; font-size: 0.65rem; }
+  .book-detail-tagline { font-size: 0.9rem; line-height: 1.55; margin-bottom: 12px; }
+  .book-detail-actions { gap: 8px; margin-bottom: 8px; }
+  .book-detail-actions .btn { padding: 6px 9px; font-size: 0.58rem; }
+  .read-download-wrap { gap: 4px; }
+  .read-download-actions { gap: 6px; }
+  .read-download-stats { font-size: 0.65rem; }
+
+  .episode-breadcrumb-section { padding-top: 32px; }
+  .episode-detail-section { padding: 18px 0 48px; }
+  .episode-detail-layout { gap: 24px; }
+  .episode-detail-cover { flex-basis: 160px; width: 160px; max-width: 160px; margin: 0; }
+  .episode-detail-content { min-width: 280px; }
+  .episode-heading { font-size: 1.3rem; line-height: 1.05; }
+  .episode-book-attribution { font-size: 0.72rem; margin: 8px 0 10px; }
+  .episode-statuses { justify-content: flex-start; margin-bottom: 8px; }
+  .episode-rating-summary { justify-content: flex-start; }
+  .episode-teaser { padding: 16px 18px; }
+  .episode-detail-content .book-detail-actions { justify-content: flex-start; }
+}
+
 @media (max-width: 760px) {
   .book-detail-body { grid-template-columns: 1fr; text-align: center; }
-  .book-detail-cover { max-width: 220px; margin: -100px auto 0; }
   .book-detail-tagline, .book-detail-note { margin-left: auto; margin-right: auto; }
   .book-detail-actions { justify-content: center; }
+  .read-download-wrap { align-items: center; }
+}
+
+@media (max-width: 480px) {
+  .book-detail-hero-inner { padding-bottom: 6px; }
+  .book-detail-hero-inner h1 { font-size: 1.05rem; margin-bottom: 2px; }
+  .book-detail-urdu { display: none; }
+
+  .book-detail-overview-section { padding: 32px 0; }
+  .book-detail-body { gap: 20px; }
+  .book-detail-overview-section .book-detail-cover { max-width: 140px; margin: 0 auto; }
+  .book-detail-tagline { font-size: 0.82rem; }
+  .book-detail-actions .btn { padding: 5px 8px; font-size: 0.54rem; }
+  .episode-breadcrumb-section { padding-top: 24px; }
+  .episode-detail-section { padding: 22px 0 32px; }
+  .episode-detail-cover { flex-basis: 140px; width: 140px; max-width: 140px; }
+  .episode-heading { font-size: 1.2rem; }
 }
 
 /* ---------- Rich detail sections (shared by hub + standalone) ---------- */
@@ -1362,6 +1528,7 @@ h1, h2, h3, h4 {
   line-height: 1.9;
   margin-bottom: 12px;
   max-width: 66ch;
+  white-space: pre-wrap;
 }
 .author-note-name {
   font-family: var(--font-heading);
@@ -1618,3 +1785,45 @@ h1, h2, h3, h4 {
 }
 .coming-soon-btn-wrap { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .coming-soon-note { font-size: 0.85rem; font-weight: 600; color: var(--maroon-dark); }
+
+@media (max-width: 700px) {
+  .detail-section { padding: 32px 0; }
+  .detail-section .lbl { font-size: 0.62rem; margin-bottom: 10px; }
+  .detail-prose { font-size: 0.86rem; line-height: 1.7; }
+  .description-ur { font-size: 1rem; line-height: 2; margin-bottom: 8px; }
+  .placeholder-banner { padding: 8px 12px; font-size: 0.72rem; margin-bottom: 16px; }
+  .excerpt-block { padding: 16px 18px; }
+  .excerpt-block .ur { font-size: 1.05rem; line-height: 2.1; }
+  .excerpt-source { font-size: 0.7rem; margin-top: 10px; }
+  .for-you-card { padding: 12px 14px; font-size: 0.8rem; }
+  .reading-tip { padding: 12px 14px; }
+  .reading-tip-label { font-size: 0.82rem; }
+  .reading-tip-detail { font-size: 0.76rem; }
+  .episode-card { padding: 12px 14px; }
+  .episode-title { font-size: 0.82rem; }
+  .episode-title-ur { font-size: 0.86rem; }
+  .episode-synopsis { font-size: 0.72rem; }
+  .detail-section .rating-summary { gap: 14px; margin-bottom: 14px; }
+  .detail-section .rating-avg-num { font-size: 1.6rem; }
+  .detail-section .rating-bars { min-width: 160px; }
+  .detail-section .review-card { padding: 12px 14px; }
+  .detail-section .review-name { font-size: 0.78rem; }
+  .detail-section .review-when { font-size: 0.7rem; }
+  .detail-section .review-text { font-size: 0.78rem; line-height: 1.6; }
+  .detail-section .review-form { padding: 14px; }
+  .detail-section .review-form-label { font-size: 0.78rem; }
+  .detail-section .review-form input,
+  .detail-section .review-form textarea { padding: 8px 10px; font-size: 0.8rem; }
+  .detail-section .review-form .btn { padding: 6px 9px; font-size: 0.58rem; }
+}
+
+@media (max-width: 480px) {
+  .detail-section { padding: 26px 0; }
+  .detail-prose { font-size: 0.8rem; }
+  .description-ur { font-size: 0.9rem; }
+  .detail-quote { padding: 30px 20px; }
+  .detail-quote .ur { font-size: 1.05rem; }
+  .more-card { flex-basis: 125px; }
+  .more-title { font-size: 0.75rem; }
+  .more-type { font-size: 0.68rem; }
+}

@@ -57,6 +57,8 @@ const DEFAULT_BOOK = {
   homeOrder: 0,
   published: true,
   comingSoon: false,
+  showReadDownloadStats: false,
+  assetStats: { readCount: 0, downloadCount: 0 },
 };
 
 const normalize = (b) => {
@@ -73,8 +75,12 @@ const normalize = (b) => {
     readingTips: b.readingTips || [],
     episodes: b.episodes || [],
     reviews: b.reviews || [],
+    showReadDownloadStats: b.showReadDownloadStats ?? false,
+    assetStats: b.assetStats || { readCount: 0, downloadCount: 0 },
   };
 };
+
+const fmtCount = (n) => Number(n || 0).toLocaleString();
 
 export default function BookEditorForm({ initialBook, isNew }) {
   const router = useRouter();
@@ -370,6 +376,27 @@ export default function BookEditorForm({ initialBook, isNew }) {
         />
       </div>
 
+      <div className="adm-card" data-book-tab="ratings">
+        <h2>Read / download stats</h2>
+        <p className="adm-card-hint">The author can always see these counts. Turn on the switch only if readers should see them on the public book page.</p>
+        <div className="adm-stat-grid">
+          <div className="adm-stat">
+            <span>Book reads</span>
+            <strong>{fmtCount(book.assetStats?.readCount)}</strong>
+          </div>
+          <div className="adm-stat">
+            <span>Book downloads</span>
+            <strong>{fmtCount(book.assetStats?.downloadCount)}</strong>
+          </div>
+        </div>
+        <Toggle
+          label="Show counts to readers"
+          hint="Off keeps the numbers private in this admin panel."
+          checked={book.showReadDownloadStats}
+          onChange={(v) => set({ showReadDownloadStats: v })}
+        />
+      </div>
+
       <div className="adm-card" data-book-tab="episodes">
         <div className="adm-row-between">
           <div>
@@ -401,7 +428,9 @@ export default function BookEditorForm({ initialBook, isNew }) {
             </button>
             <div className="adm-episode-body">
             <div className="adm-row-between adm-episode-actions">
-              <span className="adm-comment-meta">Edit episode details</span>
+              <span className="adm-comment-meta">
+                {fmtCount(ep.assetStats?.readCount)} reads / {fmtCount(ep.assetStats?.downloadCount)} downloads
+              </span>
               <button type="button" className="adm-btn adm-btn-danger adm-btn-sm" onClick={() => setEpisodes(episodes.filter((_, idx) => idx !== i))}>
                 Remove episode
               </button>

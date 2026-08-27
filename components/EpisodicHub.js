@@ -7,10 +7,8 @@ export default function EpisodicHub({ book }) {
 
   return (
     <main>
-      <section
-        className="book-detail-hero"
-        style={{ backgroundImage: `url(${book.hero})` }}
-      >
+      <section className="book-detail-hero">
+        <img className="book-detail-hero-image" src={book.hero} alt="" aria-hidden="true" />
         <div className="book-detail-hero-overlay" />
         <div className="container book-detail-hero-inner">
           <p className="eyebrow">{book.typeLabel}</p>
@@ -22,7 +20,7 @@ export default function EpisodicHub({ book }) {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section book-detail-overview-section">
         <div className="container book-detail-body">
           <div className="book-detail-cover">
             <img src={book.cover} alt={`${book.title} cover`} />
@@ -35,17 +33,15 @@ export default function EpisodicHub({ book }) {
             )}
 
             {book.rating && (
-              <div
-                style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}
-              >
+              <div className="book-rating-summary">
                 <StarRating value={book.rating.avg} />
-                <span style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                <span className="book-rating-count">
                   {book.rating.avg.toFixed(1)} · {book.rating.count.toLocaleString()} reviews
                 </span>
               </div>
             )}
 
-            <div className="chip-row" style={{ marginBottom: 16 }}>
+            <div className="chip-row book-detail-statuses">
               <span className={`chip ${book.moreEpisodesComing ? "chip--outline" : ""}`}>
                 {book.moreEpisodesComing ? `Ongoing · ${released} episode${released === 1 ? "" : "s"} released` : "Complete"}
               </span>
@@ -68,8 +64,7 @@ export default function EpisodicHub({ book }) {
               </a>
               <a
                 href="/#newsletter"
-                className="btn btn-outline-dark"
-                style={{ borderColor: "var(--rose-light)", color: "var(--ink-soft)" }}
+                className="btn btn-outline-dark notify-button"
               >
                 Notify Me
               </a>

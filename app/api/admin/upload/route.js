@@ -12,13 +12,19 @@ function buildPath(filename, folder, contentType) {
   const ext = (extFromName && extFromName.length <= 8 ? extFromName : extFromType)
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "") || "bin";
-  const safeName = String(filename || "file")
-    .toLowerCase()
-    .replace(/[^a-z0-9.\-]+/g, "-")
-    .slice(0, 80);
-  const base = safeName.split(".")[0] || "file";
   const dir = folder === "pdf" ? "pdfs" : "images";
-  return `${dir}/${Date.now()}-${base}.${ext}`;
+  const rawBase = String(filename || "file").replace(/\.[^.]+$/, "") || "file";
+  const base = rawBase
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "file";
+
+  if (folder === "pdf") {
+    return `${dir}/${base}.${ext}`;
+  }
+
+  return `${dir}/${Date.now()}-${base.toLowerCase()}.${ext}`;
 }
 
 // Creates a signed upload URL so the browser can PUT the file straight to
@@ -55,7 +61,7 @@ export async function POST(request) {
     const path = buildPath(body.filename, body.folder, contentType);
     const { error } = await admin.storage.from("assets").upload(path, buffer, {
       contentType,
-      upsert: false,
+      upsert: body.folder === "pdf",
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ url: storagePublicUrl(`assets/${path}`) });
@@ -70,7 +76,9 @@ export async function POST(request) {
   }
 
   const path = buildPath(filename, body.folder, contentType);
-  const { data, error } = await admin.storage.from("assets").createSignedUploadUrl(path);
+  const { data, error } = await admin.storage
+    .from("assets")
+    .createSignedUploadUrl(path, { upsert: body.folder === "pdf" });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({

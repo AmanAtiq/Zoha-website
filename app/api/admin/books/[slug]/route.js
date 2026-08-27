@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "../../../../../lib/admin-auth";
 import { getAdminClient } from "../../../../../lib/supabase-server";
-import { bookToRow, episodeToRow, rowToBook, rowToReview } from "../../../../../lib/serialize";
+import { bookToRow, episodeToRow, rowToAssetStats, rowToBook, rowToReview } from "../../../../../lib/serialize";
 import { getSeedBookForAdmin } from "../../../../../lib/data";
 
 export const dynamic = "force-dynamic";
@@ -28,12 +28,20 @@ export async function GET(_request, { params }) {
     return NextResponse.json({ book: seedBook });
   }
 
-  const [epRes, revRes] = await Promise.all([
+  const [epRes, revRes, statsRes] = await Promise.all([
     admin.from("episodes").select("*").eq("book_slug", slug).order("episode_number", { ascending: true }),
     admin.from("reviews").select("*").eq("book_slug", slug).order("created_at", { ascending: false }),
+    admin.from("book_asset_stats").select("*").eq("book_slug", slug),
   ]);
 
-  const book = rowToBook(row, epRes.data || [], revRes.data || []);
+  const book = rowToBook(
+    { ...row, show_read_download_stats: true },
+    epRes.data || [],
+    revRes.data || [],
+    statsRes.data || []
+  );
+  book.showReadDownloadStats = !!row.show_read_download_stats;
+  book.assetStats = rowToAssetStats((statsRes.data || []).find((s) => !s.episode_slug));
   book.reviews = (revRes.data || []).map(rowToReview);
   return NextResponse.json({ book });
 }
@@ -69,6 +77,10 @@ export async function PUT(request, { params }) {
     const { coming_soon: _drop, ...without } = row;
     ({ error } = await admin.from("books").upsert(without, { onConflict: "slug" }));
   }
+  if (error && /show_read_download_stats/i.test(error.message)) {
+    const { show_read_download_stats: _drop, ...without } = row;
+    ({ error } = await admin.from("books").upsert(without, { onConflict: "slug" }));
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Replace episodes wholesale.
@@ -99,6 +111,7 @@ export async function PATCH(request, { params }) {
   if (typeof body.homeOrder === "number") patch.home_order = body.homeOrder;
   if (typeof body.published === "boolean") patch.published = body.published;
   if (typeof body.comingSoon === "boolean") patch.coming_soon = body.comingSoon;
+  if (typeof body.showReadDownloadStats === "boolean") patch.show_read_download_stats = body.showReadDownloadStats;
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });

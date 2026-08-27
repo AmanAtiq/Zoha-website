@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDataClient } from "../../../lib/supabase-server";
+import { sendCommentNotification } from "../../../lib/email";
 
 export async function POST(request) {
   const db = getDataClient();
@@ -38,6 +39,16 @@ export async function POST(request) {
     console.error("review insert failed:", error.message);
     return NextResponse.json({ error: "Could not save your review." }, { status: 500 });
   }
+
+  await sendCommentNotification({
+    bookSlug,
+    episodeSlug,
+    name: name || "Reader",
+    rating,
+    text,
+  }).catch((err) => {
+    console.error("comment email failed:", err.message);
+  });
 
   return NextResponse.json({
     ok: true,

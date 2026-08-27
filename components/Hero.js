@@ -29,10 +29,7 @@ export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
       <section className="hero" id="hero" aria-label="Featured works">
         <div className="hero-slider">
           <article className="slide is-active">
-            <div
-              className="slide-bg"
-              style={{ backgroundImage: `url(${FALLBACK_IMAGE})` }}
-            />
+            <img className="slide-bg" src={FALLBACK_IMAGE} alt="" aria-hidden="true" />
             <div className="slide-overlay" />
             <div className="container slide-content">
               <p className="slide-type">Coming Soon</p>
@@ -53,10 +50,7 @@ export default function Hero({ slides = [], autoplayMs = 6500, lede = "" }) {
             className={`slide${i === active ? " is-active" : ""}`}
             aria-hidden={i !== active}
           >
-            <div
-              className="slide-bg"
-              style={{ backgroundImage: `url(${book.hero || book.cover || FALLBACK_IMAGE})` }}
-            />
+            <img className="slide-bg" src={book.hero || book.cover || FALLBACK_IMAGE} alt="" aria-hidden="true" />
             <div className="slide-overlay" />
             <div className="container slide-content">
               {lede && <p className="slide-lede">{lede}</p>}

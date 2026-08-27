@@ -19,10 +19,11 @@ export async function GET() {
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const admin = getAdminClient();
-  const [booksRes, epRes, revRes] = await Promise.all([
+  const [booksRes, epRes, revRes, statsRes] = await Promise.all([
     admin.from("books").select("*").order("home_order", { ascending: true }),
     admin.from("episodes").select("book_slug, id"),
     admin.from("reviews").select("book_slug, id"),
+    admin.from("book_asset_stats").select("book_slug, read_count, download_count"),
   ]);
 
   if (booksRes.error) {
@@ -33,6 +34,13 @@ export async function GET() {
   for (const ep of epRes.data || []) epCounts[ep.book_slug] = (epCounts[ep.book_slug] || 0) + 1;
   const revCounts = {};
   for (const r of revRes.data || []) revCounts[r.book_slug] = (revCounts[r.book_slug] || 0) + 1;
+  const assetCounts = {};
+  for (const s of statsRes.data || []) {
+    const counts = assetCounts[s.book_slug] || { readCount: 0, downloadCount: 0 };
+    counts.readCount += Number(s.read_count || 0);
+    counts.downloadCount += Number(s.download_count || 0);
+    assetCounts[s.book_slug] = counts;
+  }
 
   const dbBooks = (booksRes.data || []).map((b) => ({
     slug: b.slug,
@@ -49,6 +57,8 @@ export async function GET() {
     prebookOnly: !!b.prebook_only,
     published: b.published ?? true,
     comingSoon: !!b.coming_soon,
+    showReadDownloadStats: !!b.show_read_download_stats,
+    assetStats: assetCounts[b.slug] || { readCount: 0, downloadCount: 0 },
     inDb: true,
   })).filter((b) => !b.prebookOnly);
 
@@ -89,6 +99,10 @@ export async function POST(request) {
   }
   if (insert.error && /coming_soon/i.test(insert.error.message)) {
     const { coming_soon: _drop, ...without } = row;
+    insert = await admin.from("books").insert(without).select().single();
+  }
+  if (insert.error && /show_read_download_stats/i.test(insert.error.message)) {
+    const { show_read_download_stats: _drop, ...without } = row;
     insert = await admin.from("books").insert(without).select().single();
   }
   if (insert.error) {
