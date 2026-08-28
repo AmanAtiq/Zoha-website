@@ -5,6 +5,8 @@ import ShareButton from "./ShareButton";
 import ReadDownloadButton from "./ReadDownloadButton";
 
 export default function StandaloneDetail({ book }) {
+  const authorNoteIsUrdu = /[\u0600-\u06FF]/.test(book.authorNote || "");
+
   return (
     <main>
       <section className="book-detail-hero">
@@ -97,9 +99,15 @@ export default function StandaloneDetail({ book }) {
           <div className="container">
             <p className="lbl">Author's Note</p>
             <div className="author-note">
-              <span className="author-note-avatar" aria-hidden="true">ZA</span>
+              <img className="author-note-avatar" src="/images/logo/logo-maroon-bg.png" alt="" aria-hidden="true" />
               <div>
-                <p>{book.authorNote}</p>
+                <p
+                  className={`author-note-copy${authorNoteIsUrdu ? " author-note-copy--urdu" : ""}`}
+                  lang={authorNoteIsUrdu ? "ur" : "en"}
+                  dir={authorNoteIsUrdu ? "rtl" : "ltr"}
+                >
+                  {book.authorNote}
+                </p>
                 <div className="author-note-name">ZOHA ASIF</div>
               </div>
             </div>

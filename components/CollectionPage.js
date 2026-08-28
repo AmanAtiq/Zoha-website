@@ -1,3 +1,5 @@
+import CollectionHeroSlider from "./CollectionHeroSlider";
+
 const COLLECTIONS = {
   episodic: {
     eyebrow: "Read as it unfolds",
@@ -82,4 +84,3 @@ export default function CollectionPage({ type, items = [], heroSlides = [] }) {
     </main>
   );
 }
-import CollectionHeroSlider from "./CollectionHeroSlider";
