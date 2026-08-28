@@ -289,3 +289,28 @@ create policy "public read assets" on storage.objects
 
 -- Admin uploads happen server-side with the service role key (bypasses RLS),
 -- so no insert policy is granted to anon/authenticated here.
+
+-- ---------- Newsletter subscribers ----------
+create table if not exists public.subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  source text default 'website',
+  status text default 'active' check (status in ('active', 'unsubscribed')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.subscribers enable row level security;
+drop policy if exists "public insert subscribers" on public.subscribers;
+create policy "public insert subscribers" on public.subscribers for insert with check (true);
+
+drop policy if exists "no anon subscribers select" on public.subscribers;
+create policy "no anon subscribers select" on public.subscribers for select using (false);
+
+drop trigger if exists subscribers_updated_at on public.subscribers;
+create trigger subscribers_updated_at before update on public.subscribers
+  for each row execute function public.set_updated_at();
+
+create index if not exists subscribers_email_idx on public.subscribers (email);
+create index if not exists subscribers_created_at_idx on public.subscribers (created_at desc);
+

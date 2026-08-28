@@ -8,6 +8,7 @@ const NAV = [
   { href: "/admin/books", label: "Books", group: "Content" },
   { href: "/admin/home", label: "Homepage", group: "Content" },
   { href: "/admin/comments", label: "Comments & Reviews", group: "Community" },
+  { href: "/admin/subscribers", label: "Newsletter", group: "Community" },
   { href: "/admin/prebooking", label: "Prebooking", group: "Shop" },
 ];
 

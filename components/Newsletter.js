@@ -3,14 +3,39 @@
 import { useState } from "react";
 
 export default function Newsletter() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle"); // 'idle' | 'loading' | 'success' | 'error'
   const [note, setNote] = useState("");
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    // Static frontend-lock milestone — wire up to the real subscriber
-    // list once the backend / newsletter tool is confirmed (SOW 6.2).
-    setNote("Thanks — you're on the list for new episodes and updates.");
-    e.target.reset();
+    if (!email || status === "loading") return;
+
+    setStatus("loading");
+    setNote("");
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setStatus("error");
+        setNote(data.error || "Could not subscribe right now. Please try again.");
+        return;
+      }
+
+      setStatus("success");
+      setNote(data.message || "Thanks — you're on the list for new episodes and updates.");
+      setEmail("");
+    } catch {
+      setStatus("error");
+      setNote("Network error. Please check your connection and try again.");
+    }
   };
 
   return (
@@ -31,14 +56,24 @@ export default function Newsletter() {
               type="email"
               id="newsletterEmail"
               name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address"
               required
+              disabled={status === "loading"}
             />
-            <button type="submit" className="btn btn-primary">
-              Subscribe
+            <button type="submit" className="btn btn-primary" disabled={status === "loading"}>
+              {status === "loading" ? "Subscribing..." : "Subscribe"}
             </button>
           </form>
-          <p className="newsletter-note" aria-live="polite">{note}</p>
+          {note && (
+            <p
+              className={`newsletter-note${status === "error" ? " newsletter-note--error" : ""}`}
+              aria-live="polite"
+            >
+              {note}
+            </p>
+          )}
         </div>
       </div>
     </section>

@@ -1090,6 +1090,7 @@ h1, h2, h3, h4 {
 .newsletter-form input::placeholder { color: rgba(250,245,240,0.5); }
 .newsletter-form input:focus { outline: none; border-color: var(--rose); background: rgba(250,245,240,0.14); }
 .newsletter-note { margin-top: 12px; color: var(--rose-light); font-size: 0.88rem; }
+.newsletter-note--error { color: #fca5a5; }
 
 @media (max-width: 640px) {
   .newsletter-form { flex-direction: column; max-width: 100%; }
